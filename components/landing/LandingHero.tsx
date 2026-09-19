@@ -23,149 +23,257 @@ export default function LandingHero({ onEnterPortal }: LandingHeroProps) {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center text-center px-6 py-20 bg-background min-h-screen">
-      {/* Navigation Header */}
-      <header className="fixed top-0 left-0 right-0 h-16 bg-surface/80 backdrop-blur-md flex items-center justify-between px-8 z-50">
+    <section className="relative w-full min-h-screen bg-[#0A0B0D] text-text-primary flex flex-col justify-between overflow-hidden">
+      {/* Subtle Dot Matrix Background */}
+      <div 
+        className="absolute inset-0 pointer-events-none opacity-40"
+        style={{
+          backgroundImage: "radial-gradient(circle, rgba(255, 255, 255, 0.08) 1px, transparent 1px)",
+          backgroundSize: "28px 28px",
+        }}
+      />
+
+      {/* Top Navigation Bar */}
+      <header className="relative z-30 w-full px-6 sm:px-12 py-6 flex items-center justify-between border-b border-white/[0.06] bg-[#0A0B0D]/70 backdrop-blur-md">
         <div className="flex items-center gap-3">
-          <img src="/logo.svg" alt="Eigenmark Logo" className="w-8 h-8 object-contain" />
-          <span className="text-xl font-light tracking-tight text-text-primary">
+          <img src="/logo.svg" alt="Eigenmark Logo" className="w-7 h-7 object-contain" />
+          <span className="text-lg font-light tracking-tight text-white">
             Eigenmark
           </span>
         </div>
-        <div className="flex items-center gap-4">
+
+        {/* Center Navigation Links */}
+        <nav className="hidden md:flex items-center gap-8 text-xs font-mono uppercase tracking-widest text-zinc-400">
+          <a href="#lineage" className="hover:text-white transition-colors duration-200">
+            Lineage
+          </a>
+          <a href="#radar" className="hover:text-white transition-colors duration-200">
+            Invariant Radar
+          </a>
+          <a href="#mcp" className="hover:text-white transition-colors duration-200">
+            MCP Protocol
+          </a>
+          <a href="#settlement" className="hover:text-white transition-colors duration-200">
+            Settlement
+          </a>
+          <a 
+            href="https://github.com/wisdomdivine/eigenmark" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="hover:text-white transition-colors duration-200"
+          >
+            Docs
+          </a>
+        </nav>
+
+        {/* Wallet & Portal Actions */}
+        <div className="flex items-center gap-3">
           {isConnected ? (
-            <div className="flex items-center gap-4">
-              <div className="text-right hidden sm:block">
-                <span className="text-[10px] font-normal text-brand uppercase block leading-none">
-                  Wallet connected
-                </span>
-                <span className="text-[11px] font-mono text-text-muted mt-1 block">
-                  {currentUser.address.substring(0, 6)}...{currentUser.address.slice(-4)}
-                </span>
-              </div>
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-mono text-zinc-400 hidden sm:inline-block">
+                {currentUser.address.substring(0, 6)}...{currentUser.address.slice(-4)}
+              </span>
               <button
                 onClick={disconnectWallet}
-                className="px-4 py-1.5 text-xs font-light text-text-muted hover:text-text-primary transition-colors cursor-pointer"
+                className="px-3 py-1.5 text-xs font-mono uppercase tracking-wider text-zinc-400 hover:text-white transition-colors duration-200"
               >
                 Disconnect
               </button>
               <button
                 onClick={() => router.push("/portal/register")}
-                className="px-6 py-2 text-sm font-light text-background bg-brand hover:bg-text-primary hover:text-background transition-colors duration-200 rounded-full cursor-pointer"
+                className="px-5 py-2 text-xs font-mono uppercase tracking-wider text-black bg-white hover:bg-zinc-200 transition-colors duration-200 rounded-full cursor-pointer"
               >
                 Enter Portal
               </button>
             </div>
           ) : (
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="px-6 py-2 text-sm font-light text-text-primary bg-surface-active hover:bg-brand hover:text-background transition-colors duration-200 rounded-full cursor-pointer"
-            >
-              Connect Wallet
-            </button>
+            <div className="flex items-center gap-2.5">
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="px-5 py-2 text-xs font-mono uppercase tracking-wider text-white border border-white/20 hover:border-white/40 hover:bg-white/[0.04] transition-all duration-200 rounded-full cursor-pointer"
+              >
+                Connect Wallet
+              </button>
+              <button
+                onClick={handleAction}
+                className="px-5 py-2 text-xs font-mono uppercase tracking-wider text-black bg-[#60A5FA] hover:bg-white transition-colors duration-200 rounded-full cursor-pointer"
+              >
+                Launch Console
+              </button>
+            </div>
           )}
         </div>
       </header>
 
-      {/* Hero Copy */}
-      <div className="max-w-5xl mt-16 flex flex-col items-center">
-        {/* Large Brand Emblem */}
-        <div className="w-20 h-20 sm:w-24 sm:h-24 mb-6 flex items-center justify-center">
-          <img src="/logo.svg" alt="Eigenmark" className="w-full h-full object-contain" />
-        </div>
-
-        <span className="text-xs uppercase tracking-widest text-brand font-normal mb-4">
-          verifiable rights layer for digital content
-        </span>
-        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-light tracking-tight text-text-primary leading-tight mb-6">
-          The machine verifiable rights layer built for AI agents
+      {/* Hero Typography & CTA */}
+      <div className="relative z-20 max-w-5xl mx-auto px-6 pt-20 sm:pt-28 pb-12 flex flex-col items-center text-center">
+        <h1 className="text-4xl sm:text-6xl md:text-7xl font-light tracking-tight text-white leading-[1.12] max-w-4xl">
+          Where autonomous AI agents{" "}
+          <span className="text-[#60A5FA]">verify rights.</span>
         </h1>
-        <p className="text-sm sm:text-base font-light text-text-muted max-w-3xl leading-relaxed mb-8">
-          Eigenmark registers assets, computes visual and cryptographic signatures, uploads media to serverless storage, and exposes standard rights interfaces to AI agents using the Model Context Protocol.
+
+        <p className="text-sm sm:text-base md:text-lg font-light text-zinc-400 max-w-2xl mt-6 leading-relaxed">
+          Compute perceptual invariants, verify multi-generation parent lineage, and execute atomic royalty splits via Model Context Protocol.
         </p>
 
-        {/* Call to Action Button */}
-        <div className="flex items-center gap-4 mb-16">
+        {/* Action Buttons */}
+        <div className="flex flex-wrap items-center justify-center gap-3.5 mt-8">
           <button
             onClick={handleAction}
-            className="px-8 py-3.5 text-xs uppercase tracking-wider font-mono text-background bg-brand hover:bg-text-primary hover:text-background transition-colors duration-200 rounded-full cursor-pointer"
+            className="px-7 py-3 text-xs font-mono uppercase tracking-widest text-black bg-[#60A5FA] hover:bg-white transition-colors duration-200 rounded-full cursor-pointer"
           >
-            {isConnected ? "Launch Portal Console" : "Connect Web3 Wallet"}
+            {isConnected ? "Launch Portal Console" : "Launch Console"}
           </button>
-        </div>
-
-        {/* Minimalist Visual Representation of Provenance */}
-        <div className="w-full max-w-4xl bg-surface rounded-3xl p-8 flex flex-col items-center justify-center gap-6">
-          <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-6">
-            
-            {/* Step 1: Upload and Hash */}
-            <div className="bg-surface-active p-6 rounded-2xl text-left flex flex-col justify-between min-h-[160px]">
-              <div>
-                <span className="text-[10px] uppercase tracking-widest text-brand font-normal block mb-2 font-mono">
-                  01 Media Hash
-                </span>
-                <h3 className="text-sm font-normal text-text-primary mb-1">
-                  Local Perceptual Signatures
-                </h3>
-                <p className="text-[11px] font-light text-text-muted leading-relaxed">
-                  Computes SHA 256 and visual pHash in browser. Uploads media to Supabase storage.
-                </p>
-              </div>
-              <div className="text-[10px] font-mono text-success mt-4">
-                Verify Complete
-              </div>
-            </div>
-
-            {/* Step 2: Smart Contract Ledger */}
-            <div className="bg-surface-active p-6 rounded-2xl text-left flex flex-col justify-between min-h-[160px]">
-              <div>
-                <span className="text-[10px] uppercase tracking-widest text-brand font-normal block mb-2 font-mono">
-                  02 Ledger Registry
-                </span>
-                <h3 className="text-sm font-normal text-text-primary mb-1">
-                  Smart Contract Splits
-                </h3>
-                <p className="text-[11px] font-light text-text-muted leading-relaxed">
-                  Solidity contracts automatically split licensing fees between parent and derivative creators.
-                </p>
-              </div>
-              <div className="text-[10px] font-mono text-brand mt-4">
-                Arbitrum Sepolia Active
-              </div>
-            </div>
-
-            {/* Step 3: MCP Agent Interface */}
-            <div className="bg-surface-active p-6 rounded-2xl text-left flex flex-col justify-between min-h-[160px]">
-              <div>
-                <span className="text-[10px] uppercase tracking-widest text-brand font-normal block mb-2 font-mono">
-                  03 Agent Access
-                </span>
-                <h3 className="text-sm font-normal text-text-primary mb-1">
-                  Model Context Protocol
-                </h3>
-                <p className="text-[11px] font-light text-text-muted leading-relaxed">
-                  Exposes stateless tools for AI agents to query provenance, verify rights, and settle royalties.
-                </p>
-              </div>
-              <div className="text-[10px] font-mono text-text-muted mt-4">
-                Stdio Server Ready
-              </div>
-            </div>
-
-          </div>
-
-          <div className="text-[10px] font-mono text-text-muted bg-surface-active/50 px-4 py-2 rounded-full mt-2">
-            Verifiable provenance infrastructure enabling autonomous licensing settlement
-          </div>
+          <a
+            href="https://www.eigenmark.app/api/mcp"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-7 py-3 text-xs font-mono uppercase tracking-widest text-white border border-white/20 hover:border-white/40 hover:bg-white/[0.04] transition-all duration-200 rounded-full"
+          >
+            View MCP Endpoint
+          </a>
         </div>
       </div>
 
-      {/* Wallet Connection Modal overlay */}
+      {/* Bottom Generative Data Mosaic (Pixel Matrix + Halftone Raster Structure) */}
+      <div className="relative z-10 w-full h-44 sm:h-56 md:h-64 mt-auto overflow-hidden pointer-events-none select-none">
+        {/* Left Side: Stepped Pixel Square Matrix */}
+        <div className="absolute bottom-0 left-0 flex items-end">
+          <svg
+            className="w-[280px] sm:w-[420px] md:w-[560px] h-[180px] sm:h-[220px] md:h-[250px]"
+            viewBox="0 0 400 200"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            {/* Column 1 (Leftmost edge) */}
+            <rect x="0" y="20" width="16" height="16" fill="#60A5FA" fillOpacity="0.85" />
+            <rect x="0" y="40" width="16" height="16" fill="#93C5FD" fillOpacity="0.95" />
+            <rect x="0" y="60" width="16" height="16" fill="#3B82F6" fillOpacity="0.75" />
+            <rect x="0" y="80" width="16" height="16" fill="#60A5FA" fillOpacity="0.9" />
+            <rect x="0" y="100" width="16" height="16" fill="#BFDBFE" fillOpacity="0.7" />
+            <rect x="0" y="120" width="16" height="16" fill="#60A5FA" fillOpacity="0.8" />
+            <rect x="0" y="140" width="16" height="16" fill="#3B82F6" fillOpacity="0.85" />
+            <rect x="0" y="160" width="16" height="16" fill="#93C5FD" fillOpacity="0.9" />
+            <rect x="0" y="180" width="16" height="16" fill="#60A5FA" fillOpacity="0.75" />
+
+            {/* Column 2 */}
+            <rect x="20" y="40" width="16" height="16" fill="#BFDBFE" fillOpacity="0.8" />
+            <rect x="20" y="60" width="16" height="16" fill="#60A5FA" fillOpacity="0.9" />
+            <rect x="20" y="80" width="16" height="16" fill="#93C5FD" fillOpacity="0.7" />
+            <rect x="20" y="100" width="16" height="16" fill="#3B82F6" fillOpacity="0.85" />
+            <rect x="20" y="120" width="16" height="16" fill="#60A5FA" fillOpacity="0.8" />
+            <rect x="20" y="140" width="16" height="16" fill="#BFDBFE" fillOpacity="0.95" />
+            <rect x="20" y="160" width="16" height="16" fill="#3B82F6" fillOpacity="0.75" />
+            <rect x="20" y="180" width="16" height="16" fill="#60A5FA" fillOpacity="0.85" />
+
+            {/* Column 3 */}
+            <rect x="40" y="60" width="16" height="16" fill="#60A5FA" fillOpacity="0.85" />
+            <rect x="40" y="80" width="16" height="16" fill="#93C5FD" fillOpacity="0.9" />
+            <rect x="40" y="100" width="16" height="16" fill="#60A5FA" fillOpacity="0.7" />
+            <rect x="40" y="120" width="16" height="16" fill="#BFDBFE" fillOpacity="0.85" />
+            <rect x="40" y="140" width="16" height="16" fill="#3B82F6" fillOpacity="0.8" />
+            <rect x="40" y="160" width="16" height="16" fill="#60A5FA" fillOpacity="0.95" />
+            <rect x="40" y="180" width="16" height="16" fill="#93C5FD" fillOpacity="0.75" />
+
+            {/* Column 4 */}
+            <rect x="60" y="80" width="16" height="16" fill="#3B82F6" fillOpacity="0.8" />
+            <rect x="60" y="100" width="16" height="16" fill="#BFDBFE" fillOpacity="0.9" />
+            <rect x="60" y="120" width="16" height="16" fill="#60A5FA" fillOpacity="0.75" />
+            <rect x="60" y="140" width="16" height="16" fill="#93C5FD" fillOpacity="0.85" />
+            <rect x="60" y="160" width="16" height="16" fill="#60A5FA" fillOpacity="0.8" />
+            <rect x="60" y="180" width="16" height="16" fill="#3B82F6" fillOpacity="0.9" />
+
+            {/* Column 5 */}
+            <rect x="80" y="100" width="16" height="16" fill="#60A5FA" fillOpacity="0.85" />
+            <rect x="80" y="120" width="16" height="16" fill="#93C5FD" fillOpacity="0.75" />
+            <rect x="80" y="140" width="16" height="16" fill="#BFDBFE" fillOpacity="0.9" />
+            <rect x="80" y="160" width="16" height="16" fill="#3B82F6" fillOpacity="0.8" />
+            <rect x="80" y="180" width="16" height="16" fill="#60A5FA" fillOpacity="0.85" />
+
+            {/* Column 6 */}
+            <rect x="100" y="120" width="16" height="16" fill="#BFDBFE" fillOpacity="0.8" />
+            <rect x="100" y="140" width="16" height="16" fill="#60A5FA" fillOpacity="0.9" />
+            <rect x="100" y="160" width="16" height="16" fill="#93C5FD" fillOpacity="0.75" />
+            <rect x="100" y="180" width="16" height="16" fill="#3B82F6" fillOpacity="0.85" />
+
+            {/* Column 7 */}
+            <rect x="120" y="140" width="16" height="16" fill="#60A5FA" fillOpacity="0.85" />
+            <rect x="120" y="160" width="16" height="16" fill="#BFDBFE" fillOpacity="0.7" />
+            <rect x="120" y="180" width="16" height="16" fill="#60A5FA" fillOpacity="0.9" />
+
+            {/* Column 8 */}
+            <rect x="140" y="160" width="16" height="16" fill="#93C5FD" fillOpacity="0.8" />
+            <rect x="140" y="180" width="16" height="16" fill="#3B82F6" fillOpacity="0.85" />
+
+            {/* Column 9 */}
+            <rect x="160" y="180" width="16" height="16" fill="#60A5FA" fillOpacity="0.75" />
+          </svg>
+        </div>
+
+        {/* Right Side: Halftone Dot Matrix + Frequency Scanlines */}
+        <div className="absolute bottom-0 right-0 flex items-end justify-end">
+          <svg
+            className="w-[280px] sm:w-[420px] md:w-[560px] h-[180px] sm:h-[220px] md:h-[250px]"
+            viewBox="0 0 400 200"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            {/* Top Right Ascending Circles */}
+            <circle cx="380" cy="20" r="8" fill="#93C5FD" fillOpacity="0.9" />
+            <circle cx="360" cy="30" r="8" fill="#60A5FA" fillOpacity="0.8" />
+            <circle cx="380" cy="40" r="8" fill="#3B82F6" fillOpacity="0.85" />
+
+            <circle cx="340" cy="45" r="8" fill="#BFDBFE" fillOpacity="0.75" />
+            <circle cx="360" cy="55" r="8" fill="#60A5FA" fillOpacity="0.9" />
+            <circle cx="380" cy="65" r="8" fill="#93C5FD" fillOpacity="0.8" />
+
+            <circle cx="320" cy="60" r="8" fill="#60A5FA" fillOpacity="0.85" />
+            <circle cx="340" cy="70" r="8" fill="#3B82F6" fillOpacity="0.7" />
+            <circle cx="360" cy="80" r="8" fill="#BFDBFE" fillOpacity="0.9" />
+            <circle cx="380" cy="90" r="8" fill="#60A5FA" fillOpacity="0.85" />
+
+            <circle cx="300" cy="80" r="8" fill="#93C5FD" fillOpacity="0.8" />
+            <circle cx="320" cy="90" r="8" fill="#60A5FA" fillOpacity="0.75" />
+            <circle cx="340" cy="100" r="8" fill="#BFDBFE" fillOpacity="0.9" />
+            <circle cx="360" cy="110" r="8" fill="#3B82F6" fillOpacity="0.85" />
+            <circle cx="380" cy="120" r="8" fill="#60A5FA" fillOpacity="0.9" />
+
+            <circle cx="280" cy="100" r="8" fill="#60A5FA" fillOpacity="0.75" />
+            <circle cx="300" cy="110" r="8" fill="#BFDBFE" fillOpacity="0.85" />
+            <circle cx="320" cy="120" r="8" fill="#93C5FD" fillOpacity="0.7" />
+            <circle cx="340" cy="130" r="8" fill="#60A5FA" fillOpacity="0.9" />
+            <circle cx="360" cy="140" r="8" fill="#3B82F6" fillOpacity="0.8" />
+            <circle cx="380" cy="150" r="8" fill="#BFDBFE" fillOpacity="0.95" />
+
+            <circle cx="260" cy="120" r="8" fill="#93C5FD" fillOpacity="0.85" />
+            <circle cx="280" cy="130" r="8" fill="#60A5FA" fillOpacity="0.8" />
+            <circle cx="300" cy="140" r="8" fill="#3B82F6" fillOpacity="0.75" />
+            <circle cx="320" cy="150" r="8" fill="#BFDBFE" fillOpacity="0.9" />
+            <circle cx="340" cy="160" r="8" fill="#60A5FA" fillOpacity="0.85" />
+            <circle cx="360" cy="170" r="8" fill="#93C5FD" fillOpacity="0.8" />
+            <circle cx="380" cy="180" r="8" fill="#3B82F6" fillOpacity="0.9" />
+
+            <circle cx="240" cy="140" r="8" fill="#60A5FA" fillOpacity="0.75" />
+            <circle cx="260" cy="150" r="8" fill="#BFDBFE" fillOpacity="0.85" />
+            <circle cx="280" cy="160" r="8" fill="#93C5FD" fillOpacity="0.7" />
+            <circle cx="300" cy="170" r="8" fill="#60A5FA" fillOpacity="0.9" />
+            <circle cx="320" cy="180" r="8" fill="#3B82F6" fillOpacity="0.85" />
+
+            <circle cx="220" cy="160" r="8" fill="#93C5FD" fillOpacity="0.8" />
+            <circle cx="240" cy="170" r="8" fill="#60A5FA" fillOpacity="0.75" />
+            <circle cx="260" cy="180" r="8" fill="#BFDBFE" fillOpacity="0.9" />
+
+            <circle cx="200" cy="180" r="8" fill="#60A5FA" fillOpacity="0.85" />
+          </svg>
+        </div>
+      </div>
+
+      {/* Wallet Connection Modal Overlay */}
       <WalletModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onConnect={connectWallet}
       />
-    </div>
+    </section>
   );
 }
