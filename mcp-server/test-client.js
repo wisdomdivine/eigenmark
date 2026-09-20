@@ -1,8 +1,12 @@
 import { spawn } from "child_process";
 import pg from "pg";
+import dotenv from "dotenv";
+
+dotenv.config({ path: "../.env.local" });
+dotenv.config();
 
 const pool = new pg.Pool({
-  connectionString: process.env.DATABASE_URL || "postgresql://user@localhost:5432/eigenmark"
+  connectionString: process.env.DATABASE_URL
 });
 
 // Setup mock assets in the database for the test

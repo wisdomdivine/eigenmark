@@ -4,10 +4,16 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprot
 import pg from "pg";
 import dotenv from "dotenv";
 
+dotenv.config({ path: "../.env.local" });
 dotenv.config();
 
 // PostgreSQL connection config
-const dbUrl = process.env.DATABASE_URL || "postgresql://user@localhost:5432/proofchain";
+const dbUrl = process.env.DATABASE_URL;
+
+if (!dbUrl) {
+  console.error("Warning: DATABASE_URL environment variable is not defined");
+}
+
 const pool = new pg.Pool({
   connectionString: dbUrl,
 });

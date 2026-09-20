@@ -1,7 +1,8 @@
 require("@nomicfoundation/hardhat-toolbox");
+require("dotenv").config({ path: ".env.local" });
 require("dotenv").config();
 
-const privateKey = process.env.PRIVATE_KEY || "0000000000000000000000000000000000000000000000000000000000000000";
+const privateKey = process.env.PRIVATE_KEY;
 
 module.exports = {
   solidity: {
@@ -20,7 +21,7 @@ module.exports = {
     arbitrumSepolia: {
       url: "https://sepolia-rollup.arbitrum.io/rpc",
       chainId: 421614,
-      accounts: [privateKey],
+      accounts: privateKey ? [privateKey] : [],
     },
   },
 };
