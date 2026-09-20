@@ -3,7 +3,8 @@
 import { useRouter } from "next/navigation";
 import LandingHero from "@/components/landing/LandingHero";
 import LandingFeatures from "@/components/landing/LandingFeatures";
-import PartnerList from "@/components/landing/PartnerList";
+import TechnicalDimensions from "@/components/landing/TechnicalDimensions";
+import MinimalFooter from "@/components/landing/MinimalFooter";
 
 export default function Home() {
   const router = useRouter();
@@ -13,11 +14,11 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-background font-sans text-text-primary antialiased">
+    <main className="flex flex-col min-h-screen bg-[#0A0B0D] font-sans text-text-primary antialiased">
       <LandingHero onEnterPortal={handleEnterPortal} />
       <LandingFeatures />
-      <PartnerList />
-    </div>
+      <TechnicalDimensions />
+      <MinimalFooter />
+    </main>
   );
 }
-

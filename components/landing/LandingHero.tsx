@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import { useAppState } from "@/context/StateContext";
 import WalletModal from "@/components/ui/WalletModal";
 
@@ -33,8 +34,13 @@ export default function LandingHero({ onEnterPortal }: LandingHeroProps) {
         }}
       />
 
-      {/* Top Navigation Bar */}
-      <header className="relative z-30 w-full px-6 sm:px-12 py-6 flex items-center justify-between border-b border-white/[0.06] bg-[#0A0B0D]/70 backdrop-blur-md">
+      {/* Top Navigation Bar without bottom border */}
+      <motion.header
+        initial={{ opacity: 0, y: -16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        className="relative z-30 w-full px-6 sm:px-12 py-6 flex items-center justify-between bg-[#0A0B0D]/70 backdrop-blur-md"
+      >
         <div className="flex items-center gap-3">
           <img src="/logo.svg" alt="Eigenmark Logo" className="w-7 h-7 object-contain" />
           <span className="text-lg font-light tracking-tight text-white">
@@ -75,7 +81,7 @@ export default function LandingHero({ onEnterPortal }: LandingHeroProps) {
               </span>
               <button
                 onClick={disconnectWallet}
-                className="px-3 py-1.5 text-xs font-mono uppercase tracking-wider text-zinc-400 hover:text-white transition-colors duration-200"
+                className="px-3 py-1.5 text-xs font-mono uppercase tracking-wider text-zinc-400 hover:text-white transition-colors duration-200 cursor-pointer"
               >
                 Disconnect
               </button>
@@ -90,7 +96,7 @@ export default function LandingHero({ onEnterPortal }: LandingHeroProps) {
             <div className="flex items-center gap-2.5">
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="px-5 py-2 text-xs font-mono uppercase tracking-wider text-white border border-white/20 hover:border-white/40 hover:bg-white/[0.04] transition-all duration-200 rounded-full cursor-pointer"
+                className="px-5 py-2 text-xs font-mono uppercase tracking-wider text-white hover:bg-white/[0.06] transition-all duration-200 rounded-full cursor-pointer"
               >
                 Connect Wallet
               </button>
@@ -103,21 +109,36 @@ export default function LandingHero({ onEnterPortal }: LandingHeroProps) {
             </div>
           )}
         </div>
-      </header>
+      </motion.header>
 
       {/* Hero Typography & CTA */}
       <div className="relative z-20 max-w-5xl mx-auto px-6 pt-20 sm:pt-28 pb-12 flex flex-col items-center text-center">
-        <h1 className="text-4xl sm:text-6xl md:text-7xl font-light tracking-tight text-white leading-[1.12] max-w-4xl">
+        <motion.h1
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+          className="text-4xl sm:text-6xl md:text-7xl font-light tracking-tight text-white leading-[1.12] max-w-4xl"
+        >
           Where autonomous AI agents{" "}
           <span className="text-[#60A5FA]">verify rights.</span>
-        </h1>
+        </motion.h1>
 
-        <p className="text-sm sm:text-base md:text-lg font-light text-zinc-400 max-w-2xl mt-6 leading-relaxed">
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
+          className="text-sm sm:text-base md:text-lg font-light text-zinc-400 max-w-2xl mt-6 leading-relaxed"
+        >
           Compute perceptual invariants, verify multi-generation parent lineage, and execute atomic royalty splits via Model Context Protocol.
-        </p>
+        </motion.p>
 
         {/* Action Buttons */}
-        <div className="flex flex-wrap items-center justify-center gap-3.5 mt-8">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          className="flex flex-wrap items-center justify-center gap-3.5 mt-8"
+        >
           <button
             onClick={handleAction}
             className="px-7 py-3 text-xs font-mono uppercase tracking-widest text-black bg-[#60A5FA] hover:bg-white transition-colors duration-200 rounded-full cursor-pointer"
@@ -128,15 +149,20 @@ export default function LandingHero({ onEnterPortal }: LandingHeroProps) {
             href="https://www.eigenmark.app/api/mcp"
             target="_blank"
             rel="noopener noreferrer"
-            className="px-7 py-3 text-xs font-mono uppercase tracking-widest text-white border border-white/20 hover:border-white/40 hover:bg-white/[0.04] transition-all duration-200 rounded-full"
+            className="px-7 py-3 text-xs font-mono uppercase tracking-widest text-white hover:bg-white/[0.06] transition-all duration-200 rounded-full"
           >
             View MCP Endpoint
           </a>
-        </div>
+        </motion.div>
       </div>
 
-      {/* Bottom Generative Data Mosaic (Pixel Matrix + Halftone Raster Structure) */}
-      <div className="relative z-10 w-full h-44 sm:h-56 md:h-64 mt-auto overflow-hidden pointer-events-none select-none">
+      {/* Bottom Generative Data Mosaic */}
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        className="relative z-10 w-full h-44 sm:h-56 md:h-64 mt-auto overflow-hidden pointer-events-none select-none"
+      >
         {/* Left Side: Stepped Pixel Square Matrix */}
         <div className="absolute bottom-0 left-0 flex items-end">
           <svg
@@ -145,7 +171,6 @@ export default function LandingHero({ onEnterPortal }: LandingHeroProps) {
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
           >
-            {/* Column 1 (Leftmost edge) */}
             <rect x="0" y="20" width="16" height="16" fill="#60A5FA" fillOpacity="0.85" />
             <rect x="0" y="40" width="16" height="16" fill="#93C5FD" fillOpacity="0.95" />
             <rect x="0" y="60" width="16" height="16" fill="#3B82F6" fillOpacity="0.75" />
@@ -156,7 +181,6 @@ export default function LandingHero({ onEnterPortal }: LandingHeroProps) {
             <rect x="0" y="160" width="16" height="16" fill="#93C5FD" fillOpacity="0.9" />
             <rect x="0" y="180" width="16" height="16" fill="#60A5FA" fillOpacity="0.75" />
 
-            {/* Column 2 */}
             <rect x="20" y="40" width="16" height="16" fill="#BFDBFE" fillOpacity="0.8" />
             <rect x="20" y="60" width="16" height="16" fill="#60A5FA" fillOpacity="0.9" />
             <rect x="20" y="80" width="16" height="16" fill="#93C5FD" fillOpacity="0.7" />
@@ -166,7 +190,6 @@ export default function LandingHero({ onEnterPortal }: LandingHeroProps) {
             <rect x="20" y="160" width="16" height="16" fill="#3B82F6" fillOpacity="0.75" />
             <rect x="20" y="180" width="16" height="16" fill="#60A5FA" fillOpacity="0.85" />
 
-            {/* Column 3 */}
             <rect x="40" y="60" width="16" height="16" fill="#60A5FA" fillOpacity="0.85" />
             <rect x="40" y="80" width="16" height="16" fill="#93C5FD" fillOpacity="0.9" />
             <rect x="40" y="100" width="16" height="16" fill="#60A5FA" fillOpacity="0.7" />
@@ -175,7 +198,6 @@ export default function LandingHero({ onEnterPortal }: LandingHeroProps) {
             <rect x="40" y="160" width="16" height="16" fill="#60A5FA" fillOpacity="0.95" />
             <rect x="40" y="180" width="16" height="16" fill="#93C5FD" fillOpacity="0.75" />
 
-            {/* Column 4 */}
             <rect x="60" y="80" width="16" height="16" fill="#3B82F6" fillOpacity="0.8" />
             <rect x="60" y="100" width="16" height="16" fill="#BFDBFE" fillOpacity="0.9" />
             <rect x="60" y="120" width="16" height="16" fill="#60A5FA" fillOpacity="0.75" />
@@ -183,34 +205,29 @@ export default function LandingHero({ onEnterPortal }: LandingHeroProps) {
             <rect x="60" y="160" width="16" height="16" fill="#60A5FA" fillOpacity="0.8" />
             <rect x="60" y="180" width="16" height="16" fill="#3B82F6" fillOpacity="0.9" />
 
-            {/* Column 5 */}
             <rect x="80" y="100" width="16" height="16" fill="#60A5FA" fillOpacity="0.85" />
             <rect x="80" y="120" width="16" height="16" fill="#93C5FD" fillOpacity="0.75" />
             <rect x="80" y="140" width="16" height="16" fill="#BFDBFE" fillOpacity="0.9" />
             <rect x="80" y="160" width="16" height="16" fill="#3B82F6" fillOpacity="0.8" />
             <rect x="80" y="180" width="16" height="16" fill="#60A5FA" fillOpacity="0.85" />
 
-            {/* Column 6 */}
             <rect x="100" y="120" width="16" height="16" fill="#BFDBFE" fillOpacity="0.8" />
             <rect x="100" y="140" width="16" height="16" fill="#60A5FA" fillOpacity="0.9" />
             <rect x="100" y="160" width="16" height="16" fill="#93C5FD" fillOpacity="0.75" />
             <rect x="100" y="180" width="16" height="16" fill="#3B82F6" fillOpacity="0.85" />
 
-            {/* Column 7 */}
             <rect x="120" y="140" width="16" height="16" fill="#60A5FA" fillOpacity="0.85" />
             <rect x="120" y="160" width="16" height="16" fill="#BFDBFE" fillOpacity="0.7" />
             <rect x="120" y="180" width="16" height="16" fill="#60A5FA" fillOpacity="0.9" />
 
-            {/* Column 8 */}
             <rect x="140" y="160" width="16" height="16" fill="#93C5FD" fillOpacity="0.8" />
             <rect x="140" y="180" width="16" height="16" fill="#3B82F6" fillOpacity="0.85" />
 
-            {/* Column 9 */}
             <rect x="160" y="180" width="16" height="16" fill="#60A5FA" fillOpacity="0.75" />
           </svg>
         </div>
 
-        {/* Right Side: Halftone Dot Matrix + Frequency Scanlines */}
+        {/* Right Side: Halftone Dot Matrix */}
         <div className="absolute bottom-0 right-0 flex items-end justify-end">
           <svg
             className="w-[280px] sm:w-[420px] md:w-[560px] h-[180px] sm:h-[220px] md:h-[250px]"
@@ -218,7 +235,6 @@ export default function LandingHero({ onEnterPortal }: LandingHeroProps) {
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
           >
-            {/* Top Right Ascending Circles */}
             <circle cx="380" cy="20" r="8" fill="#93C5FD" fillOpacity="0.9" />
             <circle cx="360" cy="30" r="8" fill="#60A5FA" fillOpacity="0.8" />
             <circle cx="380" cy="40" r="8" fill="#3B82F6" fillOpacity="0.85" />
@@ -266,7 +282,7 @@ export default function LandingHero({ onEnterPortal }: LandingHeroProps) {
             <circle cx="200" cy="180" r="8" fill="#60A5FA" fillOpacity="0.85" />
           </svg>
         </div>
-      </div>
+      </motion.div>
 
       {/* Wallet Connection Modal Overlay */}
       <WalletModal
