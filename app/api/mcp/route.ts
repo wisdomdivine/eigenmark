@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { pool } from "@/lib/db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -197,30 +197,41 @@ export async function POST(request: NextRequest) {
       switch (toolName) {
         case "verify_provenance": {
           const { content_hash } = args;
-          const { data: asset } = await supabase
-            .from("assets")
-            .select("*")
-            .eq("content_hash", content_hash)
-            .single();
+          const res = await pool.query(
+            `SELECT id, content_hash, title, creator_address, ai_model, phash, royalty_split, parent_hash, created_at
+             FROM assets WHERE content_hash = $1`,
+            [content_hash]
+          );
 
-          if (!asset) {
+          if (res.rows.length === 0) {
             return NextResponse.json({
               jsonrpc: "2.0",
               id: id ?? 1,
               result: {
-                content: [{ type: "text", text: "Asset not found in registry." }],
+                content: [
+                  {
+                    type: "text",
+                    text: JSON.stringify({
+                      status: "not_found",
+                      registered: false,
+                      message: "Asset not found in registry.",
+                    }),
+                  },
+                ],
               },
             });
           }
 
+          const asset = res.rows[0];
           let parentAsset = null;
-          if (asset.parent_id || asset.parent_hash) {
-            const { data: p } = await supabase
-              .from("assets")
-              .select("*")
-              .or(`id.eq.${asset.parent_id},content_hash.eq.${asset.parent_hash}`)
-              .single();
-            parentAsset = p;
+          if (asset.parent_hash) {
+            const pRes = await pool.query(
+              `SELECT content_hash, title, creator_address, royalty_split FROM assets WHERE content_hash = $1`,
+              [asset.parent_hash]
+            );
+            if (pRes.rows.length > 0) {
+              parentAsset = pRes.rows[0];
+            }
           }
 
           return NextResponse.json({
@@ -235,13 +246,13 @@ export async function POST(request: NextRequest) {
                       status: "verified",
                       registered: true,
                       asset: {
-                        id: asset.id,
+                        id: String(asset.id),
                         title: asset.title,
                         creator: asset.creator_address,
                         aiModel: asset.ai_model,
                         contentHash: asset.content_hash,
                         phash: asset.phash,
-                        royaltySplit: asset.royalty_split,
+                        royaltySplit: parseFloat(asset.royalty_split),
                         registeredAt: asset.created_at,
                       },
                       parentLineage: parentAsset
@@ -249,7 +260,7 @@ export async function POST(request: NextRequest) {
                             title: parentAsset.title,
                             creator: parentAsset.creator_address,
                             contentHash: parentAsset.content_hash,
-                            requiredRoyaltyPct: parentAsset.royalty_split,
+                            requiredRoyaltyPct: parseFloat(parentAsset.royalty_split),
                           }
                         : null,
                     },
@@ -264,8 +275,8 @@ export async function POST(request: NextRequest) {
 
         case "find_related_assets": {
           const { phash, max_distance = 6 } = args;
-          const { data: allAssets } = await supabase.from("assets").select("*");
-          const matches = (allAssets || [])
+          const res = await pool.query(`SELECT id, content_hash, title, creator_address, phash FROM assets`);
+          const matches = (res.rows || [])
             .map((item) => {
               const distance = calculateHammingDistance(phash, item.phash || "0000000000000000");
               const similarity = Math.round(((64 - distance) * 100) / 64);
@@ -308,21 +319,32 @@ export async function POST(request: NextRequest) {
         case "check_usage":
         case "get_license": {
           const { content_hash } = args;
-          const { data: asset } = await supabase
-            .from("assets")
-            .select("*")
-            .eq("content_hash", content_hash)
-            .single();
+          const res = await pool.query(
+            `SELECT title, creator_address, royalty_split, parent_hash FROM assets WHERE content_hash = $1`,
+            [content_hash]
+          );
 
-          if (!asset) {
+          if (res.rows.length === 0) {
             return NextResponse.json({
               jsonrpc: "2.0",
               id: id ?? 1,
               result: {
-                content: [{ type: "text", text: "Asset not found in registry." }],
+                content: [
+                  {
+                    type: "text",
+                    text: JSON.stringify({
+                      status: "not_found",
+                      registered: false,
+                      message: "Asset not found in registry.",
+                    }),
+                  },
+                ],
               },
             });
           }
+
+          const asset = res.rows[0];
+          const royalty = parseFloat(asset.royalty_split) || 20;
 
           return NextResponse.json({
             jsonrpc: "2.0",
@@ -337,8 +359,8 @@ export async function POST(request: NextRequest) {
                       licenseFeeUSDC: 10.0,
                       arbitrumContract: "0x71207757FB3F8118EC0BAb8f2251E09973892306",
                       royaltySplitDistribution: {
-                        primaryCreatorPercent: Number(asset.royalty_split) || 20,
-                        derivativeCreatorPercent: 100 - (Number(asset.royalty_split) || 20),
+                        primaryCreatorPercent: royalty,
+                        derivativeCreatorPercent: 100 - royalty,
                       },
                       commercialRightsPermitted: true,
                       x402PaymentSupported: true,
@@ -354,13 +376,14 @@ export async function POST(request: NextRequest) {
 
         case "license_asset": {
           const { content_hash, licensee_address } = args;
-          const { data: asset } = await supabase
-            .from("assets")
-            .select("*")
-            .eq("content_hash", content_hash)
-            .single();
+          const res = await pool.query(
+            `SELECT creator_address, royalty_split FROM assets WHERE content_hash = $1`,
+            [content_hash]
+          );
 
-          const royalty = Number(asset?.royalty_split) || 20;
+          const asset = res.rows[0];
+          const royalty = parseFloat(asset?.royalty_split) || 20;
+
           return NextResponse.json({
             jsonrpc: "2.0",
             id: id ?? 1,

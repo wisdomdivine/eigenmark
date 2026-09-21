@@ -99,7 +99,7 @@ export async function POST(request: Request) {
   } catch (error: any) {
     console.error("Database insert asset failed:", error);
     return NextResponse.json(
-      { error: "Database insert asset failed" },
+      { error: "Database insert asset failed", details: error?.message || String(error) },
       { status: 500 }
     );
   }
