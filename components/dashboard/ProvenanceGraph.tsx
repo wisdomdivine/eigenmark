@@ -155,149 +155,166 @@ export default function ProvenanceGraph({ assets }: ProvenanceGraphProps) {
           />
 
           {/* VIEW 1: Lineage Network Tree */}
-          {viewMode === "network" && (
-            <div className="w-full flex-1 flex items-center justify-center relative min-h-[380px]">
-              {assets.length === 0 ? (
-                <div className="text-center py-12">
-                  <p className="text-xs font-light text-text-muted">
-                    No provenance assets anchored yet. Register or derive an asset to populate the graph.
-                  </p>
-                </div>
-              ) : (
-                <svg width="100%" height="380" viewBox="0 0 650 380" className="max-w-full overflow-visible">
-                  <defs>
-                    <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#60A5FA" stopOpacity="0.8" />
-                      <stop offset="100%" stopColor="#34D399" stopOpacity="0.8" />
-                    </linearGradient>
-                  </defs>
+          {viewMode === "network" && (() => {
+            const hasDerivatives = derivativeAssets.length > 0;
+            const parentCx = hasDerivatives ? 170 : 325;
+            const derivativeCx = 475;
+            const maxRows = Math.max(parentAssets.length, derivativeAssets.length, 1);
+            const rowSpacing = 135;
+            const startY = 75;
+            const dynamicSvgHeight = Math.max(400, startY + maxRows * rowSpacing + 50);
 
-                  {/* Draw Connecting Curved Splines */}
-                  {derivativeAssets.map((child, idx) => {
-                    const parentIdx = parentAssets.findIndex(
-                      (p) => p.id === child.parentId || p.contentHash === child.parentId
-                    );
-                    const safeParentIdx = parentIdx === -1 ? 0 : parentIdx;
+            return (
+              <div className="w-full flex-1 flex flex-col items-center justify-start relative min-h-[380px] max-h-[500px] overflow-y-auto overflow-x-hidden pr-2">
+                {assets.length === 0 ? (
+                  <div className="text-center py-16 m-auto">
+                    <p className="text-xs font-light text-text-muted">
+                      No provenance assets anchored yet. Register or derive an asset to populate the graph.
+                    </p>
+                  </div>
+                ) : (
+                  <svg
+                    width="100%"
+                    height={dynamicSvgHeight}
+                    viewBox={`0 0 650 ${dynamicSvgHeight}`}
+                    className="max-w-full overflow-visible my-auto"
+                  >
+                    <defs>
+                      <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#60A5FA" stopOpacity="0.8" />
+                        <stop offset="100%" stopColor="#34D399" stopOpacity="0.8" />
+                      </linearGradient>
+                    </defs>
 
-                    const startX = 160;
-                    const startY = 80 + safeParentIdx * 110;
-                    const endX = 460;
-                    const endY = 80 + idx * 100;
+                    {/* Draw Connecting Curved Splines */}
+                    {derivativeAssets.map((child, idx) => {
+                      const parentIdx = parentAssets.findIndex(
+                        (p) => p.id === child.parentId || p.contentHash === child.parentId
+                      );
+                      const safeParentIdx = parentIdx === -1 ? 0 : parentIdx;
 
-                    return (
-                      <g key={`spline-${child.id}`}>
-                        {/* Spline Path */}
-                        <path
-                          d={`M ${startX + 30} ${startY} C ${startX + 160} ${startY}, ${endX - 160} ${endY}, ${endX - 30} ${endY}`}
-                          fill="none"
-                          stroke="url(#lineGrad)"
-                          strokeWidth="2"
-                          strokeDasharray="4 4"
-                        />
-                        {/* Split Rate Tag Pill on Center of Curve */}
-                        <rect
-                          x={(startX + endX) / 2 - 28}
-                          y={(startY + endY) / 2 - 12}
-                          width="56"
-                          height="24"
-                          rx="12"
-                          fill="#14161A"
-                          stroke="#60A5FA"
-                          strokeWidth="1"
-                        />
-                        <text
-                          x={(startX + endX) / 2}
-                          y={(startY + endY) / 2 + 4}
-                          textAnchor="middle"
-                          fill="#60A5FA"
-                          fontSize="10"
-                          fontFamily="monospace"
+                      const startX = parentCx;
+                      const startYPos = startY + safeParentIdx * rowSpacing;
+                      const endX = derivativeCx;
+                      const endYPos = startY + idx * rowSpacing;
+
+                      return (
+                        <g key={`spline-${child.id}`}>
+                          {/* Spline Path */}
+                          <path
+                            d={`M ${startX + 32} ${startYPos} C ${startX + 150} ${startYPos}, ${endX - 150} ${endYPos}, ${endX - 32} ${endYPos}`}
+                            fill="none"
+                            stroke="url(#lineGrad)"
+                            strokeWidth="2"
+                            strokeDasharray="4 4"
+                          />
+                          {/* Split Rate Tag Pill on Center of Curve */}
+                          <rect
+                            x={(startX + endX) / 2 - 28}
+                            y={(startYPos + endYPos) / 2 - 12}
+                            width="56"
+                            height="24"
+                            rx="12"
+                            fill="#14161A"
+                            stroke="#60A5FA"
+                            strokeWidth="1"
+                          />
+                          <text
+                            x={(startX + endX) / 2}
+                            y={(startYPos + endYPos) / 2 + 4}
+                            textAnchor="middle"
+                            fill="#60A5FA"
+                            fontSize="10"
+                            fontFamily="monospace"
+                          >
+                            {child.royaltySplit}% split
+                          </text>
+                        </g>
+                      );
+                    })}
+
+                    {/* Parent Origin Column */}
+                    {parentAssets.map((asset, index) => {
+                      const cx = parentCx;
+                      const cy = startY + index * rowSpacing;
+                      const isSelected = selectedAsset?.id === asset.id;
+                      const displayTitle = asset.title.length > 24 ? asset.title.slice(0, 22) + "..." : asset.title;
+
+                      return (
+                        <g
+                          key={asset.id}
+                          className="cursor-pointer transition-transform duration-200"
+                          onClick={() => setSelectedAssetId(asset.id)}
                         >
-                          {child.royaltySplit}% split
-                        </text>
-                      </g>
-                    );
-                  })}
+                          {/* Outer Pulsing Glow Circle */}
+                          {isSelected && (
+                            <circle cx={cx} cy={cy} r="38" fill="none" stroke="#60A5FA" strokeWidth="1.5" strokeDasharray="3 3" />
+                          )}
+                          {/* Node Circle */}
+                          <circle
+                            cx={cx}
+                            cy={cy}
+                            r="28"
+                            fill={isSelected ? "#1E2127" : "#14161A"}
+                            stroke={isSelected ? "#60A5FA" : "#2E333D"}
+                            strokeWidth="2"
+                          />
+                          {/* Node Inner Symbol */}
+                          <text x={cx} y={cy + 4} textAnchor="middle" fill="#60A5FA" fontSize="11" fontWeight="400" fontFamily="monospace">
+                            GEN-0
+                          </text>
+                          {/* Title & Hash Label Below */}
+                          <text x={cx} y={cy + 46} textAnchor="middle" fill="#F9FAFB" fontSize="12" fontWeight="300">
+                            {displayTitle}
+                          </text>
+                          <text x={cx} y={cy + 60} textAnchor="middle" fill="#9CA3AF" fontSize="9" fontFamily="monospace">
+                            {asset.creatorAddress.substring(0, 6)}...{asset.creatorAddress.slice(-4)}
+                          </text>
+                        </g>
+                      );
+                    })}
 
-                  {/* Parent Origin Column (Left) */}
-                  {parentAssets.map((asset, index) => {
-                    const cx = 160;
-                    const cy = 80 + index * 110;
-                    const isSelected = selectedAsset?.id === asset.id;
+                    {/* Derivative Column */}
+                    {derivativeAssets.map((asset, index) => {
+                      const cx = derivativeCx;
+                      const cy = startY + index * rowSpacing;
+                      const isSelected = selectedAsset?.id === asset.id;
+                      const displayTitle = asset.title.length > 24 ? asset.title.slice(0, 22) + "..." : asset.title;
 
-                    return (
-                      <g
-                        key={asset.id}
-                        className="cursor-pointer transition-transform duration-200"
-                        onClick={() => setSelectedAssetId(asset.id)}
-                      >
-                        {/* Outer Pulsing Glow Circle */}
-                        {isSelected && (
-                          <circle cx={cx} cy={cy} r="38" fill="none" stroke="#60A5FA" strokeWidth="1.5" strokeDasharray="3 3" />
-                        )}
-                        {/* Node Circle */}
-                        <circle
-                          cx={cx}
-                          cy={cy}
-                          r="28"
-                          fill={isSelected ? "#1E2127" : "#14161A"}
-                          stroke={isSelected ? "#60A5FA" : "#2E333D"}
-                          strokeWidth="2"
-                        />
-                        {/* Node Inner Symbol */}
-                        <text x={cx} y={cy + 4} textAnchor="middle" fill="#60A5FA" fontSize="11" fontWeight="400" fontFamily="monospace">
-                          GEN-0
-                        </text>
-                        {/* Title & Hash Label Below */}
-                        <text x={cx} y={cy + 48} textAnchor="middle" fill="#F9FAFB" fontSize="12" fontWeight="300">
-                          {asset.title}
-                        </text>
-                        <text x={cx} y={cy + 62} textAnchor="middle" fill="#9CA3AF" fontSize="9" fontFamily="monospace">
-                          {asset.creatorAddress.substring(0, 6)}...{asset.creatorAddress.slice(-4)}
-                        </text>
-                      </g>
-                    );
-                  })}
-
-                  {/* Derivative Column (Right) */}
-                  {derivativeAssets.map((asset, index) => {
-                    const cx = 460;
-                    const cy = 80 + index * 100;
-                    const isSelected = selectedAsset?.id === asset.id;
-
-                    return (
-                      <g
-                        key={asset.id}
-                        className="cursor-pointer transition-transform duration-200"
-                        onClick={() => setSelectedAssetId(asset.id)}
-                      >
-                        {isSelected && (
-                          <circle cx={cx} cy={cy} r="38" fill="none" stroke="#34D399" strokeWidth="1.5" strokeDasharray="3 3" />
-                        )}
-                        <circle
-                          cx={cx}
-                          cy={cy}
-                          r="28"
-                          fill={isSelected ? "#1E2127" : "#14161A"}
-                          stroke={isSelected ? "#34D399" : "#2E333D"}
-                          strokeWidth="2"
-                        />
-                        <text x={cx} y={cy + 4} textAnchor="middle" fill="#34D399" fontSize="11" fontWeight="400" fontFamily="monospace">
-                          REMIX
-                        </text>
-                        <text x={cx} y={cy + 48} textAnchor="middle" fill="#F9FAFB" fontSize="12" fontWeight="300">
-                          {asset.title}
-                        </text>
-                        <text x={cx} y={cy + 62} textAnchor="middle" fill="#9CA3AF" fontSize="9" fontFamily="monospace">
-                          {asset.creatorAddress.substring(0, 6)}...{asset.creatorAddress.slice(-4)}
-                        </text>
-                      </g>
-                    );
-                  })}
-                </svg>
-              )}
-            </div>
-          )}
+                      return (
+                        <g
+                          key={asset.id}
+                          className="cursor-pointer transition-transform duration-200"
+                          onClick={() => setSelectedAssetId(asset.id)}
+                        >
+                          {isSelected && (
+                            <circle cx={cx} cy={cy} r="38" fill="none" stroke="#34D399" strokeWidth="1.5" strokeDasharray="3 3" />
+                          )}
+                          <circle
+                            cx={cx}
+                            cy={cy}
+                            r="28"
+                            fill={isSelected ? "#1E2127" : "#14161A"}
+                            stroke={isSelected ? "#34D399" : "#2E333D"}
+                            strokeWidth="2"
+                          />
+                          <text x={cx} y={cy + 4} textAnchor="middle" fill="#34D399" fontSize="11" fontWeight="400" fontFamily="monospace">
+                            REMIX
+                          </text>
+                          <text x={cx} y={cy + 46} textAnchor="middle" fill="#F9FAFB" fontSize="12" fontWeight="300">
+                            {displayTitle}
+                          </text>
+                          <text x={cx} y={cy + 60} textAnchor="middle" fill="#9CA3AF" fontSize="9" fontFamily="monospace">
+                            {asset.creatorAddress.substring(0, 6)}...{asset.creatorAddress.slice(-4)}
+                          </text>
+                        </g>
+                      );
+                    })}
+                  </svg>
+                )}
+              </div>
+            );
+          })()}
 
           {/* VIEW 2: Invariant Polygon Radar Chart (Inspired by Reference 1) */}
           {viewMode === "radar" && (
@@ -432,7 +449,7 @@ export default function ProvenanceGraph({ assets }: ProvenanceGraphProps) {
           )}
 
           {/* Bottom Protocol Info Tag */}
-          <div className="flex items-center justify-between pt-4 border-t border-surface-active text-[10px] font-mono text-text-muted">
+          <div className="mt-6 pt-4 border-t border-surface-active text-[10px] font-mono text-text-muted flex items-center justify-between shrink-0">
             <span>Arbitrum Sepolia Ledger Synchronized</span>
             <span>Deterministic SHA-256 & 64-bit DCT pHash</span>
           </div>
