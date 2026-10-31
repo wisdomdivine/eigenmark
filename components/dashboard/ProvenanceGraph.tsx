@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   IconNetwork,
   IconRadar,
@@ -8,6 +8,7 @@ import {
   IconArrowUpRight,
   IconFingerprint,
   IconCheck,
+  IconRefresh,
 } from "@tabler/icons-react";
 
 interface Asset {
@@ -34,11 +35,69 @@ export default function ProvenanceGraph({ assets }: ProvenanceGraphProps) {
     assets.length > 0 ? assets[0].id : ""
   );
   const [viewMode, setViewMode] = useState<"network" | "radar" | "composition">("network");
+  const [nodePositions, setNodePositions] = useState<Record<string, { x: number; y: number }>>({});
+  const [draggedNodeId, setDraggedNodeId] = useState<string | null>(null);
+  const svgRef = useRef<SVGSVGElement | null>(null);
 
   const selectedAsset = assets.find((a) => a.id === selectedAssetId) || (assets.length > 0 ? assets[0] : null);
 
   const parentAssets = assets.filter((a) => !a.parentId);
   const derivativeAssets = assets.filter((a) => a.parentId);
+
+  const hasDerivatives = derivativeAssets.length > 0;
+  const parentCx = hasDerivatives ? 170 : 325;
+  const derivativeCx = 475;
+  const maxRows = Math.max(parentAssets.length, derivativeAssets.length, 1);
+  const rowSpacing = 135;
+  const startY = 75;
+  const dynamicSvgHeight = Math.max(400, startY + maxRows * rowSpacing + 50);
+
+  const resetLayout = () => {
+    const initialPositions: Record<string, { x: number; y: number }> = {};
+    parentAssets.forEach((asset, idx) => {
+      initialPositions[asset.id] = {
+        x: parentCx,
+        y: startY + idx * rowSpacing,
+      };
+    });
+    derivativeAssets.forEach((asset, idx) => {
+      initialPositions[asset.id] = {
+        x: derivativeCx,
+        y: startY + idx * rowSpacing,
+      };
+    });
+    setNodePositions(initialPositions);
+  };
+
+  useEffect(() => {
+    resetLayout();
+  }, [assets]);
+
+  const handleMouseDown = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setDraggedNodeId(id);
+    setSelectedAssetId(id);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
+    if (!draggedNodeId || !svgRef.current) return;
+    const CTM = svgRef.current.getScreenCTM();
+    if (!CTM) return;
+    const x = (e.clientX - CTM.e) / CTM.a;
+    const y = (e.clientY - CTM.f) / CTM.d;
+
+    const clampedX = Math.max(50, Math.min(600, x));
+    const clampedY = Math.max(50, Math.min(dynamicSvgHeight - 50, y));
+
+    setNodePositions((prev) => ({
+      ...prev,
+      [draggedNodeId]: { x: clampedX, y: clampedY },
+    }));
+  };
+
+  const handleMouseUp = () => {
+    setDraggedNodeId(null);
+  };
 
   // Compute stats for header
   const totalAssets = assets.length;
@@ -50,7 +109,7 @@ export default function ProvenanceGraph({ assets }: ProvenanceGraphProps) {
 
   return (
     <div className="w-full max-w-6xl mx-auto my-8 flex flex-col gap-6 select-none font-sans">
-      {/* Top Header & High-Impact Metric Banner (Inspired by Reference Designs) */}
+      {/* Top Header & High-Impact Metric Banner */}
       <div className="bg-surface p-8 rounded-3xl flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
         <div>
           <div className="flex items-center gap-2 mb-2">
@@ -140,12 +199,24 @@ export default function ProvenanceGraph({ assets }: ProvenanceGraphProps) {
               </button>
             </div>
 
-            <span className="text-[10px] font-mono text-text-muted uppercase tracking-wider hidden sm:block">
-              Interactive Explorer
-            </span>
+            <div className="flex items-center gap-3">
+              {viewMode === "network" && (
+                <button
+                  onClick={resetLayout}
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-mono uppercase tracking-wider text-text-muted hover:text-text-primary bg-surface-active/50 hover:bg-surface-active transition-all cursor-pointer"
+                  title="Reset Node Positions"
+                >
+                  <IconRefresh size={12} />
+                  <span>Reset Nodes</span>
+                </button>
+              )}
+              <span className="text-[10px] font-mono text-text-muted uppercase tracking-wider hidden sm:block">
+                Interactive Draggable Canvas
+              </span>
+            </div>
           </div>
 
-          {/* Canvas Background Grid (Dotted matrix inspired by Reference 4) */}
+          {/* Canvas Background Grid */}
           <div
             className="absolute inset-0 opacity-20 pointer-events-none"
             style={{
@@ -155,168 +226,204 @@ export default function ProvenanceGraph({ assets }: ProvenanceGraphProps) {
           />
 
           {/* VIEW 1: Lineage Network Tree */}
-          {viewMode === "network" && (() => {
-            const hasDerivatives = derivativeAssets.length > 0;
-            const parentCx = hasDerivatives ? 170 : 325;
-            const derivativeCx = 475;
-            const maxRows = Math.max(parentAssets.length, derivativeAssets.length, 1);
-            const rowSpacing = 135;
-            const startY = 75;
-            const dynamicSvgHeight = Math.max(400, startY + maxRows * rowSpacing + 50);
+          {viewMode === "network" && (
+            <div className="w-full flex-1 flex flex-col items-center justify-start relative min-h-[380px] max-h-[500px] overflow-y-auto overflow-x-hidden pr-2">
+              {assets.length === 0 ? (
+                <div className="text-center py-16 m-auto">
+                  <p className="text-xs font-light text-text-muted">
+                    No provenance assets anchored yet. Register or derive an asset to populate the graph.
+                  </p>
+                </div>
+              ) : (
+                <svg
+                  ref={svgRef}
+                  width="100%"
+                  height={dynamicSvgHeight}
+                  viewBox={`0 0 650 ${dynamicSvgHeight}`}
+                  className="max-w-full overflow-visible my-auto select-none"
+                  onMouseMove={handleMouseMove}
+                  onMouseUp={handleMouseUp}
+                  onMouseLeave={handleMouseUp}
+                >
+                  <defs>
+                    <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#60A5FA" stopOpacity="0.8" />
+                      <stop offset="100%" stopColor="#34D399" stopOpacity="0.8" />
+                    </linearGradient>
+                  </defs>
 
-            return (
-              <div className="w-full flex-1 flex flex-col items-center justify-start relative min-h-[380px] max-h-[500px] overflow-y-auto overflow-x-hidden pr-2">
-                {assets.length === 0 ? (
-                  <div className="text-center py-16 m-auto">
-                    <p className="text-xs font-light text-text-muted">
-                      No provenance assets anchored yet. Register or derive an asset to populate the graph.
-                    </p>
-                  </div>
-                ) : (
-                  <svg
-                    width="100%"
-                    height={dynamicSvgHeight}
-                    viewBox={`0 0 650 ${dynamicSvgHeight}`}
-                    className="max-w-full overflow-visible my-auto"
-                  >
-                    <defs>
-                      <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#60A5FA" stopOpacity="0.8" />
-                        <stop offset="100%" stopColor="#34D399" stopOpacity="0.8" />
-                      </linearGradient>
-                    </defs>
+                  {/* Draw Connecting Curved Splines with Animated Flow Particles */}
+                  {derivativeAssets.map((child, idx) => {
+                    const parentIdx = parentAssets.findIndex(
+                      (p) => p.id === child.parentId || p.contentHash === child.parentId
+                    );
+                    const safeParentIdx = parentIdx === -1 ? 0 : parentIdx;
 
-                    {/* Draw Connecting Curved Splines */}
-                    {derivativeAssets.map((child, idx) => {
-                      const parentIdx = parentAssets.findIndex(
-                        (p) => p.id === child.parentId || p.contentHash === child.parentId
-                      );
-                      const safeParentIdx = parentIdx === -1 ? 0 : parentIdx;
+                    const parentAssetObj = parentAssets.find(
+                      (p) => p.id === child.parentId || p.contentHash === child.parentId
+                    ) || parentAssets[safeParentIdx];
 
-                      const startX = parentCx;
-                      const startYPos = startY + safeParentIdx * rowSpacing;
-                      const endX = derivativeCx;
-                      const endYPos = startY + idx * rowSpacing;
+                    const parentPos = parentAssetObj && nodePositions[parentAssetObj.id]
+                      ? nodePositions[parentAssetObj.id]
+                      : { x: parentCx, y: startY + safeParentIdx * rowSpacing };
 
-                      return (
-                        <g key={`spline-${child.id}`}>
-                          {/* Spline Path */}
-                          <path
-                            d={`M ${startX + 32} ${startYPos} C ${startX + 150} ${startYPos}, ${endX - 150} ${endYPos}, ${endX - 32} ${endYPos}`}
-                            fill="none"
-                            stroke="url(#lineGrad)"
-                            strokeWidth="2"
-                            strokeDasharray="4 4"
+                    const childPos = nodePositions[child.id]
+                      ? nodePositions[child.id]
+                      : { x: derivativeCx, y: startY + idx * rowSpacing };
+
+                    const splineD = `M ${parentPos.x + 30} ${parentPos.y} C ${parentPos.x + 140} ${parentPos.y}, ${childPos.x - 140} ${childPos.y}, ${childPos.x - 30} ${childPos.y}`;
+
+                    return (
+                      <g key={`spline-${child.id}`}>
+                        {/* Dynamic Spline Path */}
+                        <path
+                          d={splineD}
+                          fill="none"
+                          stroke="url(#lineGrad)"
+                          strokeWidth="2"
+                          strokeDasharray="4 4"
+                        />
+
+                        {/* Animated Glowing Flow Particle streaming from Parent to Child */}
+                        <circle r="4" fill="#60A5FA" opacity="0.9">
+                          <animateMotion
+                            path={splineD}
+                            dur="2.4s"
+                            repeatCount="indefinite"
                           />
-                          {/* Split Rate Tag Pill on Center of Curve */}
-                          <rect
-                            x={(startX + endX) / 2 - 28}
-                            y={(startYPos + endYPos) / 2 - 12}
-                            width="56"
-                            height="24"
-                            rx="12"
-                            fill="#14161A"
-                            stroke="#60A5FA"
-                            strokeWidth="1"
-                          />
-                          <text
-                            x={(startX + endX) / 2}
-                            y={(startYPos + endYPos) / 2 + 4}
-                            textAnchor="middle"
-                            fill="#60A5FA"
-                            fontSize="10"
-                            fontFamily="monospace"
-                          >
-                            {child.royaltySplit}% split
-                          </text>
-                        </g>
-                      );
-                    })}
+                        </circle>
 
-                    {/* Parent Origin Column */}
-                    {parentAssets.map((asset, index) => {
-                      const cx = parentCx;
-                      const cy = startY + index * rowSpacing;
-                      const isSelected = selectedAsset?.id === asset.id;
-                      const displayTitle = asset.title.length > 24 ? asset.title.slice(0, 22) + "..." : asset.title;
-
-                      return (
-                        <g
-                          key={asset.id}
-                          className="cursor-pointer transition-transform duration-200"
-                          onClick={() => setSelectedAssetId(asset.id)}
+                        {/* Split Rate Tag Pill on Center of Curve */}
+                        <rect
+                          x={(parentPos.x + childPos.x) / 2 - 28}
+                          y={(parentPos.y + childPos.y) / 2 - 12}
+                          width="56"
+                          height="24"
+                          rx="12"
+                          fill="#14161A"
+                          stroke="#60A5FA"
+                          strokeWidth="1"
+                        />
+                        <text
+                          x={(parentPos.x + childPos.x) / 2}
+                          y={(parentPos.y + childPos.y) / 2 + 4}
+                          textAnchor="middle"
+                          fill="#60A5FA"
+                          fontSize="10"
+                          fontFamily="monospace"
                         >
-                          {/* Outer Pulsing Glow Circle */}
-                          {isSelected && (
-                            <circle cx={cx} cy={cy} r="38" fill="none" stroke="#60A5FA" strokeWidth="1.5" strokeDasharray="3 3" />
-                          )}
-                          {/* Node Circle */}
-                          <circle
-                            cx={cx}
-                            cy={cy}
-                            r="28"
-                            fill={isSelected ? "#1E2127" : "#14161A"}
-                            stroke={isSelected ? "#60A5FA" : "#2E333D"}
-                            strokeWidth="2"
-                          />
-                          {/* Node Inner Symbol */}
-                          <text x={cx} y={cy + 4} textAnchor="middle" fill="#60A5FA" fontSize="11" fontWeight="400" fontFamily="monospace">
-                            GEN-0
-                          </text>
-                          {/* Title & Hash Label Below */}
-                          <text x={cx} y={cy + 46} textAnchor="middle" fill="#F9FAFB" fontSize="12" fontWeight="300">
-                            {displayTitle}
-                          </text>
-                          <text x={cx} y={cy + 60} textAnchor="middle" fill="#9CA3AF" fontSize="9" fontFamily="monospace">
-                            {asset.creatorAddress.substring(0, 6)}...{asset.creatorAddress.slice(-4)}
-                          </text>
-                        </g>
-                      );
-                    })}
+                          {child.royaltySplit}% split
+                        </text>
+                      </g>
+                    );
+                  })}
 
-                    {/* Derivative Column */}
-                    {derivativeAssets.map((asset, index) => {
-                      const cx = derivativeCx;
-                      const cy = startY + index * rowSpacing;
-                      const isSelected = selectedAsset?.id === asset.id;
-                      const displayTitle = asset.title.length > 24 ? asset.title.slice(0, 22) + "..." : asset.title;
+                  {/* Parent Origin Nodes (Genesis Works) */}
+                  {parentAssets.map((asset, index) => {
+                    const pos = nodePositions[asset.id] || {
+                      x: parentCx,
+                      y: startY + index * rowSpacing,
+                    };
+                    const isSelected = selectedAsset?.id === asset.id;
+                    const isBeingDragged = draggedNodeId === asset.id;
+                    const displayTitle = asset.title.length > 24 ? asset.title.slice(0, 22) + "..." : asset.title;
 
-                      return (
-                        <g
-                          key={asset.id}
-                          className="cursor-pointer transition-transform duration-200"
-                          onClick={() => setSelectedAssetId(asset.id)}
-                        >
-                          {isSelected && (
-                            <circle cx={cx} cy={cy} r="38" fill="none" stroke="#34D399" strokeWidth="1.5" strokeDasharray="3 3" />
-                          )}
-                          <circle
-                            cx={cx}
-                            cy={cy}
-                            r="28"
-                            fill={isSelected ? "#1E2127" : "#14161A"}
-                            stroke={isSelected ? "#34D399" : "#2E333D"}
-                            strokeWidth="2"
-                          />
-                          <text x={cx} y={cy + 4} textAnchor="middle" fill="#34D399" fontSize="11" fontWeight="400" fontFamily="monospace">
-                            REMIX
-                          </text>
-                          <text x={cx} y={cy + 46} textAnchor="middle" fill="#F9FAFB" fontSize="12" fontWeight="300">
-                            {displayTitle}
-                          </text>
-                          <text x={cx} y={cy + 60} textAnchor="middle" fill="#9CA3AF" fontSize="9" fontFamily="monospace">
-                            {asset.creatorAddress.substring(0, 6)}...{asset.creatorAddress.slice(-4)}
-                          </text>
-                        </g>
-                      );
-                    })}
-                  </svg>
-                )}
-              </div>
-            );
-          })()}
+                    return (
+                      <g
+                        key={asset.id}
+                        className="cursor-grab active:cursor-grabbing transition-opacity duration-150"
+                        onMouseDown={(e) => handleMouseDown(asset.id, e)}
+                      >
+                        {/* Expanding Radar Ripple on Active Selected Node */}
+                        {isSelected && (
+                          <>
+                            <circle cx={pos.x} cy={pos.y} r="28" fill="none" stroke="#60A5FA" opacity="0.7">
+                              <animate attributeName="r" from="28" to="48" dur="2s" repeatCount="indefinite" />
+                              <animate attributeName="opacity" from="0.7" to="0" dur="2s" repeatCount="indefinite" />
+                            </circle>
+                            <circle cx={pos.x} cy={pos.y} r="38" fill="none" stroke="#60A5FA" strokeWidth="1.5" strokeDasharray="3 3" />
+                          </>
+                        )}
 
-          {/* VIEW 2: Invariant Polygon Radar Chart (Inspired by Reference 1) */}
+                        {/* Node Circle */}
+                        <circle
+                          cx={pos.x}
+                          cy={pos.y}
+                          r={isBeingDragged ? "32" : "28"}
+                          fill={isSelected ? "#1E2127" : "#14161A"}
+                          stroke={isSelected ? "#60A5FA" : "#2E333D"}
+                          strokeWidth={isBeingDragged ? "3" : "2"}
+                        />
+
+                        {/* Node Inner Symbol */}
+                        <text x={pos.x} y={pos.y + 4} textAnchor="middle" fill="#60A5FA" fontSize="11" fontWeight="400" fontFamily="monospace">
+                          GEN-0
+                        </text>
+
+                        {/* Title & Hash Label Below */}
+                        <text x={pos.x} y={pos.y + 46} textAnchor="middle" fill="#F9FAFB" fontSize="12" fontWeight="300" pointerEvents="none">
+                          {displayTitle}
+                        </text>
+                        <text x={pos.x} y={pos.y + 60} textAnchor="middle" fill="#9CA3AF" fontSize="9" fontFamily="monospace" pointerEvents="none">
+                          {asset.creatorAddress.substring(0, 6)}...{asset.creatorAddress.slice(-4)}
+                        </text>
+                      </g>
+                    );
+                  })}
+
+                  {/* Derivative Remix Nodes */}
+                  {derivativeAssets.map((asset, index) => {
+                    const pos = nodePositions[asset.id] || {
+                      x: derivativeCx,
+                      y: startY + index * rowSpacing,
+                    };
+                    const isSelected = selectedAsset?.id === asset.id;
+                    const isBeingDragged = draggedNodeId === asset.id;
+                    const displayTitle = asset.title.length > 24 ? asset.title.slice(0, 22) + "..." : asset.title;
+
+                    return (
+                      <g
+                        key={asset.id}
+                        className="cursor-grab active:cursor-grabbing transition-opacity duration-150"
+                        onMouseDown={(e) => handleMouseDown(asset.id, e)}
+                      >
+                        {/* Expanding Radar Ripple on Active Selected Node */}
+                        {isSelected && (
+                          <>
+                            <circle cx={pos.x} cy={pos.y} r="28" fill="none" stroke="#34D399" opacity="0.7">
+                              <animate attributeName="r" from="28" to="48" dur="2s" repeatCount="indefinite" />
+                              <animate attributeName="opacity" from="0.7" to="0" dur="2s" repeatCount="indefinite" />
+                            </circle>
+                            <circle cx={pos.x} cy={pos.y} r="38" fill="none" stroke="#34D399" strokeWidth="1.5" strokeDasharray="3 3" />
+                          </>
+                        )}
+
+                        <circle
+                          cx={pos.x}
+                          cy={pos.y}
+                          r={isBeingDragged ? "32" : "28"}
+                          fill={isSelected ? "#1E2127" : "#14161A"}
+                          stroke={isSelected ? "#34D399" : "#2E333D"}
+                          strokeWidth={isBeingDragged ? "3" : "2"}
+                        />
+                        <text x={pos.x} y={pos.y + 4} textAnchor="middle" fill="#34D399" fontSize="11" fontWeight="400" fontFamily="monospace">
+                          REMIX
+                        </text>
+                        <text x={pos.x} y={pos.y + 46} textAnchor="middle" fill="#F9FAFB" fontSize="12" fontWeight="300" pointerEvents="none">
+                          {displayTitle}
+                        </text>
+                        <text x={pos.x} y={pos.y + 60} textAnchor="middle" fill="#9CA3AF" fontSize="9" fontFamily="monospace" pointerEvents="none">
+                          {asset.creatorAddress.substring(0, 6)}...{asset.creatorAddress.slice(-4)}
+                        </text>
+                      </g>
+                    );
+                  })}
+                </svg>
+              )}
+            </div>
+          )}
+
+          {/* VIEW 2: Invariant Polygon Radar Chart with Sweeping Scan Beam */}
           {viewMode === "radar" && (
             <div className="w-full flex-1 flex flex-col items-center justify-center relative min-h-[380px]">
               <div className="absolute top-0 left-0 text-left">
@@ -328,7 +435,7 @@ export default function ProvenanceGraph({ assets }: ProvenanceGraphProps) {
                 </span>
               </div>
 
-              <svg width="340" height="340" viewBox="0 0 340 340" className="overflow-visible">
+              <svg width="340" height="340" viewBox="0 0 340 340" className="overflow-visible select-none">
                 {/* Concentric Radar Polygons */}
                 {[0.2, 0.4, 0.6, 0.8, 1.0].map((scale, i) => {
                   const r = 110 * scale;
@@ -339,21 +446,22 @@ export default function ProvenanceGraph({ assets }: ProvenanceGraphProps) {
                     [170 - r * 0.59, 170 + r * 0.81],
                     [170 - r * 0.95, 170 - r * 0.31],
                   ]
-                    .map(([x, y]) => `${x},${y}`)
+                    .map((p) => p.join(","))
                     .join(" ");
 
                   return (
                     <polygon
                       key={i}
                       points={points}
-                      fill={i === 4 ? "none" : "none"}
+                      fill="none"
                       stroke="#2E333D"
                       strokeWidth="1"
+                      strokeDasharray={i === 4 ? "none" : "2 2"}
                     />
                   );
                 })}
 
-                {/* Radar Axis Lines */}
+                {/* Radar Axis Spokes */}
                 {[
                   [170, 60],
                   [274, 136],
@@ -363,6 +471,18 @@ export default function ProvenanceGraph({ assets }: ProvenanceGraphProps) {
                 ].map(([x, y], i) => (
                   <line key={i} x1="170" y1="170" x2={x} y2={y} stroke="#2E333D" strokeWidth="1" />
                 ))}
+
+                {/* Animated Rotating Radar Scan Beam */}
+                <line x1="170" y1="170" x2="170" y2="60" stroke="#60A5FA" strokeWidth="2" opacity="0.6">
+                  <animateTransform
+                    attributeName="transform"
+                    type="rotate"
+                    from="0 170 170"
+                    to="360 170 170"
+                    dur="4s"
+                    repeatCount="indefinite"
+                  />
+                </line>
 
                 {/* Active Data Area (Glowing Polygon) */}
                 <polygon
@@ -403,19 +523,18 @@ export default function ProvenanceGraph({ assets }: ProvenanceGraphProps) {
             </div>
           )}
 
-          {/* VIEW 3: Proportional Royalty Packing Circles (Inspired by References 2 & 3) */}
+          {/* VIEW 3: Proportional Royalty Packing Circles with Pulse */}
           {viewMode === "composition" && (
             <div className="w-full flex-1 flex flex-col lg:flex-row items-center justify-around gap-8 min-h-[380px]">
-              {/* Pentagram-style Nested Cluster Circles */}
               <div className="relative w-64 h-64 flex items-center justify-center">
                 {/* Large Circle (Primary Creator Split) */}
-                <div className="absolute w-44 h-44 rounded-full bg-brand/20 border border-brand flex flex-col items-center justify-center top-2 left-2">
+                <div className="absolute w-44 h-44 rounded-full bg-brand/20 border border-brand flex flex-col items-center justify-center top-2 left-2 transition-transform duration-300 hover:scale-105">
                   <span className="text-2xl font-light text-text-primary">85%</span>
                   <span className="text-[9px] uppercase font-mono text-brand">Origin Split</span>
                 </div>
 
                 {/* Derivative Remix Circle */}
-                <div className="absolute w-28 h-28 rounded-full bg-success/20 border border-success flex flex-col items-center justify-center bottom-2 right-2">
+                <div className="absolute w-28 h-28 rounded-full bg-success/20 border border-success flex flex-col items-center justify-center bottom-2 right-2 transition-transform duration-300 hover:scale-105">
                   <span className="text-lg font-light text-text-primary">15%</span>
                   <span className="text-[9px] uppercase font-mono text-success">Remix Split</span>
                 </div>
@@ -428,11 +547,11 @@ export default function ProvenanceGraph({ assets }: ProvenanceGraphProps) {
 
               {/* Legend and Explanation */}
               <div className="flex flex-col gap-4 text-left max-w-xs">
-                <span className="text-xs uppercase tracking-wider text-text-muted font-normal font-mono">
-                  Autonomous Distribution
-                </span>
+                <h4 className="text-sm font-light text-text-primary">
+                  Proportional Settlement Geometry
+                </h4>
                 <p className="text-xs font-light text-text-muted leading-relaxed">
-                  Every licensing transaction settled by AI agents distributes payment directly across creator wallets according to anchored lineage terms.
+                  Nested circles illustrate the relative allocation of gross licensing fees disbursed directly to original and derivative author wallets via smart contract calls.
                 </p>
                 <div className="flex flex-col gap-2 text-xs font-light">
                   <div className="flex items-center gap-2">
