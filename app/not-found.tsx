@@ -6,8 +6,7 @@ export default function NotFound() {
   return (
     <div className="min-h-screen bg-background text-text-primary flex flex-col items-center justify-center p-6 text-center select-none font-sans">
       <div className="w-full max-w-md bg-surface p-8 rounded-3xl flex flex-col items-center">
-        {/* 404 Pill */}
-        <span className="px-3.5 py-1 text-[11px] font-mono text-brand bg-brand/10 rounded-full mb-4 uppercase tracking-wider">
+        <span className="text-xs font-mono text-brand mb-4 uppercase tracking-wider">
           404 Not Found
         </span>
 

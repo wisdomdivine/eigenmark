@@ -112,12 +112,9 @@ export default function ProvenanceGraph({ assets }: ProvenanceGraphProps) {
       {/* Top Header & High-Impact Metric Banner */}
       <div className="bg-surface p-8 rounded-3xl flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
         <div>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="w-2 h-2 rounded-full bg-brand animate-pulse"></span>
-            <span className="text-[10px] uppercase tracking-widest text-brand font-normal">
-              Eigenmark Provenance Topology
-            </span>
-          </div>
+          <span className="text-[10px] uppercase tracking-widest text-brand font-normal block mb-2">
+            Eigenmark Provenance Topology
+          </span>
           <h1 className="text-3xl sm:text-4xl font-light text-text-primary tracking-tight">
             Lineage Network Graph
           </h1>
@@ -216,15 +213,6 @@ export default function ProvenanceGraph({ assets }: ProvenanceGraphProps) {
             </div>
           </div>
 
-          {/* Canvas Background Grid */}
-          <div
-            className="absolute inset-0 opacity-20 pointer-events-none"
-            style={{
-              backgroundImage: "radial-gradient(#60A5FA 1px, transparent 1px)",
-              backgroundSize: "24px 24px",
-            }}
-          />
-
           {/* VIEW 1: Lineage Network Tree */}
           {viewMode === "network" && (
             <div className="w-full flex-1 flex flex-col items-center justify-start relative min-h-[380px] max-h-[500px] overflow-y-auto overflow-x-hidden pr-2">
@@ -284,15 +272,6 @@ export default function ProvenanceGraph({ assets }: ProvenanceGraphProps) {
                           strokeDasharray="4 4"
                         />
 
-                        {/* Animated Glowing Flow Particle streaming from Parent to Child */}
-                        <circle r="4" fill="#60A5FA" opacity="0.9">
-                          <animateMotion
-                            path={splineD}
-                            dur="2.4s"
-                            repeatCount="indefinite"
-                          />
-                        </circle>
-
                         {/* Split Rate Tag Pill on Center of Curve */}
                         <rect
                           x={(parentPos.x + childPos.x) / 2 - 28}
@@ -334,17 +313,6 @@ export default function ProvenanceGraph({ assets }: ProvenanceGraphProps) {
                         className="cursor-grab active:cursor-grabbing transition-opacity duration-150"
                         onMouseDown={(e) => handleMouseDown(asset.id, e)}
                       >
-                        {/* Expanding Radar Ripple on Active Selected Node */}
-                        {isSelected && (
-                          <>
-                            <circle cx={pos.x} cy={pos.y} r="28" fill="none" stroke="#60A5FA" opacity="0.7">
-                              <animate attributeName="r" from="28" to="48" dur="2s" repeatCount="indefinite" />
-                              <animate attributeName="opacity" from="0.7" to="0" dur="2s" repeatCount="indefinite" />
-                            </circle>
-                            <circle cx={pos.x} cy={pos.y} r="38" fill="none" stroke="#60A5FA" strokeWidth="1.5" strokeDasharray="3 3" />
-                          </>
-                        )}
-
                         {/* Node Circle */}
                         <circle
                           cx={pos.x}
@@ -387,17 +355,6 @@ export default function ProvenanceGraph({ assets }: ProvenanceGraphProps) {
                         className="cursor-grab active:cursor-grabbing transition-opacity duration-150"
                         onMouseDown={(e) => handleMouseDown(asset.id, e)}
                       >
-                        {/* Expanding Radar Ripple on Active Selected Node */}
-                        {isSelected && (
-                          <>
-                            <circle cx={pos.x} cy={pos.y} r="28" fill="none" stroke="#34D399" opacity="0.7">
-                              <animate attributeName="r" from="28" to="48" dur="2s" repeatCount="indefinite" />
-                              <animate attributeName="opacity" from="0.7" to="0" dur="2s" repeatCount="indefinite" />
-                            </circle>
-                            <circle cx={pos.x} cy={pos.y} r="38" fill="none" stroke="#34D399" strokeWidth="1.5" strokeDasharray="3 3" />
-                          </>
-                        )}
-
                         <circle
                           cx={pos.x}
                           cy={pos.y}
@@ -472,18 +429,6 @@ export default function ProvenanceGraph({ assets }: ProvenanceGraphProps) {
                   <line key={i} x1="170" y1="170" x2={x} y2={y} stroke="#2E333D" strokeWidth="1" />
                 ))}
 
-                {/* Animated Rotating Radar Scan Beam */}
-                <line x1="170" y1="170" x2="170" y2="60" stroke="#60A5FA" strokeWidth="2" opacity="0.6">
-                  <animateTransform
-                    attributeName="transform"
-                    type="rotate"
-                    from="0 170 170"
-                    to="360 170 170"
-                    dur="4s"
-                    repeatCount="indefinite"
-                  />
-                </line>
-
                 {/* Active Data Area (Glowing Polygon) */}
                 <polygon
                   points="170,72 268,142 225,248 115,245 78,144"
@@ -554,13 +499,11 @@ export default function ProvenanceGraph({ assets }: ProvenanceGraphProps) {
                   Nested circles illustrate the relative allocation of gross licensing fees disbursed directly to original and derivative author wallets via smart contract calls.
                 </p>
                 <div className="flex flex-col gap-2 text-xs font-light">
-                  <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full bg-brand"></span>
-                    <span className="text-text-primary">Primary Parent Creator (85% to 90%)</span>
+                  <div className="text-text-primary">
+                    Primary Parent Creator (85% to 90%)
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full bg-success"></span>
-                    <span className="text-text-primary">Derivative Remix Creator (10% to 15%)</span>
+                  <div className="text-text-primary">
+                    Derivative Remix Creator (10% to 15%)
                   </div>
                 </div>
               </div>

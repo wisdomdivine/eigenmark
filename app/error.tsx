@@ -16,8 +16,7 @@ export default function ErrorPage({ error, reset }: ErrorProps) {
   return (
     <div className="min-h-screen bg-background text-text-primary flex flex-col items-center justify-center p-6 text-center select-none font-sans">
       <div className="w-full max-w-md bg-surface p-8 rounded-3xl flex flex-col items-center">
-        {/* Error Pill */}
-        <span className="px-3.5 py-1 text-[11px] font-mono text-error bg-error/10 rounded-full mb-4 uppercase tracking-wider">
+        <span className="text-xs font-mono text-error mb-4 uppercase tracking-wider">
           Runtime Exception
         </span>
 
