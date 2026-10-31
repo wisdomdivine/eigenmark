@@ -332,7 +332,7 @@ export default function RegisterForm({
           />
           {isHashing ? (
             <div className="flex flex-col items-center gap-2">
-              <div className="w-6 h-6 border-2 border-brand border-t-transparent animate-spin rounded-full"></div>
+              <span className="text-xs font-light text-brand">Computing cryptographic signature...</span>
               <span className="text-xs font-light text-text-muted">Computing hash</span>
             </div>
           ) : fileHash ? (
@@ -370,7 +370,7 @@ export default function RegisterForm({
 
         {/* Provenance Intelligence Warning Card */}
         {detectedParent && (
-          <div className="bg-surface-active/80 border border-brand/20 p-5 rounded-2xl text-left flex flex-col gap-4">
+          <div className="bg-surface-active/80 p-5 rounded-2xl text-left flex flex-col gap-4">
             <div className="flex flex-col gap-1">
               <span className="text-[10px] uppercase tracking-wider text-brand font-medium block">
                 Potential derivative detected
@@ -390,7 +390,7 @@ export default function RegisterForm({
                   setParentId(detectedParent.id);
                   setDetectedParent(null);
                 }}
-                className="flex-1 py-3 bg-brand text-background text-xs font-normal rounded-full cursor-pointer hover:bg-brand/90 transition-colors"
+                className="flex-1 py-3 bg-brand text-background text-xs font-normal rounded-xl cursor-pointer hover:bg-brand/90 transition-colors"
               >
                 Declare as derivative
               </button>
@@ -399,7 +399,7 @@ export default function RegisterForm({
                 onClick={() => {
                   setDetectedParent(null);
                 }}
-                className="flex-1 py-3 bg-surface-active text-text-primary text-xs font-normal rounded-full cursor-pointer hover:bg-surface-active/80 transition-colors"
+                className="flex-1 py-3 bg-surface-active text-text-primary text-xs font-normal rounded-xl cursor-pointer hover:bg-surface-active/80 transition-colors"
               >
                 Register as independent work
               </button>
@@ -482,7 +482,7 @@ export default function RegisterForm({
         <button
           type="submit"
           disabled={!fileHash || !title || isSubmitting || isUploading}
-          className={`w-full py-4 text-sm font-normal text-background rounded-full transition-colors duration-200 cursor-pointer mt-4 ${
+          className={`w-full py-4 text-sm font-normal text-background rounded-xl transition-colors duration-200 cursor-pointer mt-4 ${
             fileHash && title && !isSubmitting && !isUploading
               ? "bg-brand hover:bg-text-primary"
               : "bg-surface-active/50 text-text-muted cursor-not-allowed"

@@ -54,7 +54,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
     { href: "/portal/derive", label: "Derive Work", icon: IconGitFork },
     { href: "/portal/verify", label: "Verify Provenance", icon: IconSearch },
     { href: "/portal/graph", label: "Lineage Graph", icon: IconNetwork },
-    { href: "/portal/licensing", label: "Settlement Console", icon: IconReceipt },
+    { href: "/portal/licensing", label: "Licensing Console", icon: IconReceipt },
   ];
 
   return (
@@ -157,7 +157,7 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                 <span>Copy Full Address</span>
                 {copied ? <IconCheck size={12} className="text-success" /> : <IconCopy size={12} />}
               </button>
-              <div className="border-t border-surface my-1.5"></div>
+              <div className="h-px bg-surface/50 my-1.5"></div>
               <button
                 type="button"
                 onClick={() => {

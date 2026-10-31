@@ -248,8 +248,8 @@ export default function VerifyPanel({ assets }: VerifyPanelProps) {
           />
           {isHashing ? (
             <div className="flex flex-col items-center gap-2">
-              <div className="w-6 h-6 border-2 border-brand border-t-transparent animate-spin rounded-full"></div>
-              <span className="text-xs font-light text-text-muted">Computing SHA 256 and pHash</span>
+              <span className="text-xs font-light text-brand">Calculating file signatures...</span>
+              <span className="text-xs font-light text-text-muted">Computing SHA 256 and visual hash</span>
             </div>
           ) : (
             <div className="flex flex-col items-center gap-2">
@@ -297,7 +297,7 @@ export default function VerifyPanel({ assets }: VerifyPanelProps) {
                       {verifiedAsset.title}
                     </h3>
                   </div>
-                  <span className="bg-success/10 text-success text-[10px] uppercase font-mono px-3 py-1 rounded-full">
+                  <span className="text-success text-xs font-light">
                     Ledger Confirmed
                   </span>
                 </div>
@@ -337,7 +337,7 @@ export default function VerifyPanel({ assets }: VerifyPanelProps) {
                   </div>
                 </div>
 
-                <div className="border-t border-surface/50 pt-4 flex flex-col gap-2 mt-2">
+                <div className="pt-4 flex flex-col gap-2 mt-2">
                   <div className="flex justify-between text-xs font-light">
                     <span className="text-text-muted">Licensing terms</span>
                     <span className="text-text-primary">Commercial use allowed</span>
@@ -373,7 +373,7 @@ export default function VerifyPanel({ assets }: VerifyPanelProps) {
                 </p>
                 {computedHashes && (
                   <div className="text-[10px] font-mono text-text-muted mt-3 truncate">
-                    SHA 256: {computedHashes.sha256} | pHash: {computedHashes.phash}
+                    SHA 256: {computedHashes.sha256} &middot; Visual Hash: {computedHashes.phash}
                   </div>
                 )}
               </div>
@@ -392,7 +392,7 @@ export default function VerifyPanel({ assets }: VerifyPanelProps) {
                 <button
                   key={asset.id}
                   onClick={() => handleSelectAsset(asset)}
-                  className="px-3 py-1.5 bg-surface-active hover:bg-brand hover:text-background text-xs font-light rounded-full text-text-primary transition-colors duration-200 cursor-pointer"
+                  className="px-3.5 py-2 bg-surface-active hover:bg-brand hover:text-background text-xs font-light rounded-xl text-text-primary transition-colors duration-150 cursor-pointer"
                 >
                   {asset.title}
                 </button>

@@ -528,19 +528,19 @@ export default function ProvenanceGraph({ assets }: ProvenanceGraphProps) {
             <div className="w-full flex-1 flex flex-col lg:flex-row items-center justify-around gap-8 min-h-[380px]">
               <div className="relative w-64 h-64 flex items-center justify-center">
                 {/* Large Circle (Primary Creator Split) */}
-                <div className="absolute w-44 h-44 rounded-full bg-brand/20 border border-brand flex flex-col items-center justify-center top-2 left-2 transition-transform duration-300 hover:scale-105">
+                <div className="absolute w-44 h-44 rounded-full bg-brand/20 flex flex-col items-center justify-center top-2 left-2 transition-transform duration-300 hover:scale-105">
                   <span className="text-2xl font-light text-text-primary">85%</span>
                   <span className="text-[9px] uppercase font-mono text-brand">Origin Split</span>
                 </div>
 
                 {/* Derivative Remix Circle */}
-                <div className="absolute w-28 h-28 rounded-full bg-success/20 border border-success flex flex-col items-center justify-center bottom-2 right-2 transition-transform duration-300 hover:scale-105">
+                <div className="absolute w-28 h-28 rounded-full bg-success/20 flex flex-col items-center justify-center bottom-2 right-2 transition-transform duration-300 hover:scale-105">
                   <span className="text-lg font-light text-text-primary">15%</span>
                   <span className="text-[9px] uppercase font-mono text-success">Remix Split</span>
                 </div>
 
                 {/* Mini Protocol Fee Node */}
-                <div className="absolute w-12 h-12 rounded-full bg-surface-active border border-surface-active flex items-center justify-center top-0 right-8">
+                <div className="absolute w-12 h-12 rounded-full bg-surface-active flex items-center justify-center top-0 right-8">
                   <span className="text-[9px] font-mono text-text-muted">0%</span>
                 </div>
               </div>
@@ -568,9 +568,9 @@ export default function ProvenanceGraph({ assets }: ProvenanceGraphProps) {
           )}
 
           {/* Bottom Protocol Info Tag */}
-          <div className="mt-6 pt-4 border-t border-surface-active text-[10px] font-mono text-text-muted flex items-center justify-between shrink-0">
+          <div className="mt-6 pt-4 text-[10px] font-mono text-text-muted flex items-center justify-between shrink-0">
             <span>Arbitrum Sepolia Ledger Synchronized</span>
-            <span>Deterministic SHA-256 & 64-bit DCT pHash</span>
+            <span>Deterministic SHA 256 and visual hash</span>
           </div>
         </div>
 
@@ -592,7 +592,7 @@ export default function ProvenanceGraph({ assets }: ProvenanceGraphProps) {
 
               {/* Media Preview if available */}
               {selectedAsset.mediaUrl && (
-                <div className="w-full h-36 rounded-2xl bg-background overflow-hidden flex items-center justify-center border border-surface-active">
+                <div className="w-full h-36 rounded-2xl bg-background overflow-hidden flex items-center justify-center">
                   <img
                     src={selectedAsset.mediaUrl}
                     alt={selectedAsset.title}
@@ -614,7 +614,7 @@ export default function ProvenanceGraph({ assets }: ProvenanceGraphProps) {
 
                 <div>
                   <span className="text-text-muted block text-[9px] uppercase tracking-wider">
-                    Cryptographic SHA-256
+                    Cryptographic SHA 256
                   </span>
                   <span className="font-mono text-text-primary block truncate mt-0.5">
                     {selectedAsset.contentHash}
@@ -623,7 +623,7 @@ export default function ProvenanceGraph({ assets }: ProvenanceGraphProps) {
 
                 <div>
                   <span className="text-text-muted block text-[9px] uppercase tracking-wider">
-                    Visual Perceptual pHash
+                    Visual Perceptual Hash
                   </span>
                   <span className="font-mono text-brand block mt-0.5">
                     {selectedAsset.phash || "0000000000000000"}
@@ -639,7 +639,7 @@ export default function ProvenanceGraph({ assets }: ProvenanceGraphProps) {
                   </span>
                 </div>
 
-                <div className="pt-2 border-t border-surface-active flex justify-between items-center">
+                <div className="pt-2 flex justify-between items-center">
                   <span className="text-text-muted">Royalty Split Term</span>
                   <span className="text-brand font-mono">{selectedAsset.royaltySplit}% split</span>
                 </div>
