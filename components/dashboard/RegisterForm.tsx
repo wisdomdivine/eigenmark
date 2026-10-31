@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Dropdown from "@/components/ui/Dropdown";
-import { supabase } from "@/lib/supabase";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
 interface RegisterFormProps {
   currentUser: { name: string; address: string; role: string };
@@ -231,24 +231,29 @@ export default function RegisterForm({
     setIsUploading(true);
     let mediaUrl = "";
     try {
-      const fileExt = selectedFile.name.split(".").pop();
-      const filePath = `${fileHash}.${fileExt}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from("assets")
-        .upload(filePath, selectedFile, {
-          cacheControl: "3600",
-          upsert: true,
-        });
+      if (isSupabaseConfigured) {
+        const fileExt = selectedFile.name.split(".").pop();
+        const filePath = `${fileHash}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from("assets")
+          .upload(filePath, selectedFile, {
+            cacheControl: "3600",
+            upsert: true,
+          });
 
-      if (!uploadError) {
-        const { data } = supabase.storage.from("assets").getPublicUrl(filePath);
-        mediaUrl = data.publicUrl;
+        if (!uploadError) {
+          const { data } = supabase.storage.from("assets").getPublicUrl(filePath);
+          mediaUrl = data.publicUrl;
+        } else {
+          console.warn("Storage upload skipped or failed:", uploadError.message);
+        }
       } else {
-        console.error("Storage upload error:", uploadError.message);
+        mediaUrl = URL.createObjectURL(selectedFile);
       }
     } catch (err) {
-      console.error("Upload process failed:", err);
+      console.warn("Upload fallback applied:", err);
+      mediaUrl = URL.createObjectURL(selectedFile);
     } finally {
       setIsUploading(false);
     }
