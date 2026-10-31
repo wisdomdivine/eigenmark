@@ -130,7 +130,7 @@ export default function ProvenanceGraph({ assets }: ProvenanceGraphProps) {
         </div>
 
         {/* Big Numbers KPI Strip */}
-        <div className="flex items-center gap-8 bg-surface-active/30 px-6 py-4 rounded-2xl">
+        <div className="flex items-center gap-8 sm:gap-12 bg-surface-active/20 px-8 py-5 rounded-2xl">
           <div>
             <span className="text-[10px] uppercase tracking-wider text-text-muted block font-mono">
               Network Nodes
@@ -139,7 +139,6 @@ export default function ProvenanceGraph({ assets }: ProvenanceGraphProps) {
               {totalAssets}
             </span>
           </div>
-          <div className="h-8 w-[1px] bg-surface-active"></div>
           <div>
             <span className="text-[10px] uppercase tracking-wider text-text-muted block font-mono">
               Derivatives
@@ -148,7 +147,6 @@ export default function ProvenanceGraph({ assets }: ProvenanceGraphProps) {
               {derivativeCount}
             </span>
           </div>
-          <div className="h-8 w-[1px] bg-surface-active"></div>
           <div>
             <span className="text-[10px] uppercase tracking-wider text-text-muted block font-mono">
               Avg Split
@@ -165,58 +163,49 @@ export default function ProvenanceGraph({ assets }: ProvenanceGraphProps) {
         {/* Left Visualization Panel (8 Cols) */}
         <div className="lg:col-span-8 bg-surface p-6 sm:p-8 rounded-3xl flex flex-col justify-between min-h-[520px] relative overflow-hidden">
           {/* View Mode Switcher Tabs */}
-          <div className="flex items-center justify-between pb-6 z-10">
-            <div className="flex items-center gap-1.5 bg-surface-active/50 p-1 rounded-xl">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-6 z-10">
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => setViewMode("network")}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-light transition-all duration-200 cursor-pointer ${
+                className={`px-4 py-2.5 rounded-xl text-xs whitespace-nowrap transition-colors duration-150 cursor-pointer font-light ${
                   viewMode === "network"
-                    ? "bg-brand text-background font-normal"
+                    ? "bg-surface-active text-text-primary font-normal"
                     : "text-text-muted hover:text-text-primary"
                 }`}
               >
-                <IconNetwork size={14} />
-                <span>Lineage Tree</span>
+                Lineage Tree
               </button>
               <button
                 onClick={() => setViewMode("radar")}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-light transition-all duration-200 cursor-pointer ${
+                className={`px-4 py-2.5 rounded-xl text-xs whitespace-nowrap transition-colors duration-150 cursor-pointer font-light ${
                   viewMode === "radar"
-                    ? "bg-brand text-background font-normal"
+                    ? "bg-surface-active text-text-primary font-normal"
                     : "text-text-muted hover:text-text-primary"
                 }`}
               >
-                <IconRadar size={14} />
-                <span>Invariant Radar</span>
+                Invariant Radar
               </button>
               <button
                 onClick={() => setViewMode("composition")}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-light transition-all duration-200 cursor-pointer ${
+                className={`px-4 py-2.5 rounded-xl text-xs whitespace-nowrap transition-colors duration-150 cursor-pointer font-light ${
                   viewMode === "composition"
-                    ? "bg-brand text-background font-normal"
+                    ? "bg-surface-active text-text-primary font-normal"
                     : "text-text-muted hover:text-text-primary"
                 }`}
               >
-                <IconChartPie size={14} />
-                <span>Royalty Cluster</span>
+                Royalty Cluster
               </button>
             </div>
 
-            <div className="flex items-center gap-3">
-              {viewMode === "network" && (
-                <button
-                  onClick={resetLayout}
-                  className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-mono uppercase tracking-wider text-text-muted hover:text-text-primary bg-surface-active/50 hover:bg-surface-active transition-all cursor-pointer"
-                  title="Reset Node Positions"
-                >
-                  <IconRefresh size={12} />
-                  <span>Reset Nodes</span>
-                </button>
-              )}
-              <span className="text-[10px] font-mono text-text-muted uppercase tracking-wider hidden sm:block">
-                Interactive Draggable Canvas
-              </span>
-            </div>
+            {viewMode === "network" && (
+              <button
+                onClick={resetLayout}
+                className="px-3.5 py-2.5 rounded-xl text-xs font-light text-text-muted hover:text-text-primary bg-surface-active/40 hover:bg-surface-active transition-colors duration-150 cursor-pointer flex items-center gap-2 whitespace-nowrap"
+              >
+                <IconRefresh size={14} />
+                <span>Reset Layout</span>
+              </button>
+            )}
           </div>
 
           {/* VIEW SWITCHER WITH FRAMER MOTION ANIMATION */}
