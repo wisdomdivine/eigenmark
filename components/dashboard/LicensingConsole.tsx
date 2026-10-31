@@ -40,12 +40,13 @@ interface LicensingConsoleProps {
 
 interface AgentStep {
   step: number;
+  title: string;
   tool: string;
   status: "idle" | "running" | "completed" | "error";
   description: string;
   request: Record<string, unknown>;
   response: Record<string, unknown>;
-  durationMs?: number;
+  durationMs: number;
 }
 
 export default function LicensingConsole({
@@ -56,7 +57,7 @@ export default function LicensingConsole({
 }: LicensingConsoleProps) {
   const [activeTab, setActiveTab] = useState<"agent" | "manual">("agent");
   const [selectedAssetId, setSelectedAssetId] = useState("");
-  const [price, setPrice] = useState(10); // Default $10 USDC
+  const [price, setPrice] = useState(10);
   const [logs, setLogs] = useState<Array<string>>([]);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -71,9 +72,28 @@ export default function LicensingConsole({
   const derivatives = assets.filter((a) => a.parentId);
   const selectedAsset = assets.find((a) => a.id === selectedAssetId) || derivatives[0] || assets[0];
 
+  const scenarioOptions = [
+    {
+      value: "derivative",
+      label: "Derivative Video Remix",
+      sublabel: "Original creator receives agreed royalty share automatically",
+    },
+    {
+      value: "training",
+      label: "Autonomous LLM Ingestion",
+      sublabel: "Permission to include artwork in AI model training sets",
+    },
+    {
+      value: "lora",
+      label: "Artist Style Training",
+      sublabel: "Permission to train a custom style model with direct payouts",
+    },
+  ];
+
   const agentSteps: Array<AgentStep> = [
     {
       step: 1,
+      title: "Verify Lineage and Provenance",
       tool: "verify_provenance",
       status:
         agentActiveStep > 0
@@ -81,14 +101,14 @@ export default function LicensingConsole({
           : agentActiveStep === 0
           ? "running"
           : "idle",
-      description: "Analyze cryptographic lineage tree & perceptual pHash invariant",
+      description: "Inspect original artwork lineage and confirm visual similarity",
       request: {
         method: "tools/call",
         params: {
           name: "verify_provenance",
           arguments: {
             content_hash: selectedAsset?.contentHash || "0x7f9a882e34c190ab77...",
-            phash_tolerance_bits: 6,
+            visual_match_tolerance: 6,
           },
         },
       },
@@ -99,14 +119,15 @@ export default function LicensingConsole({
           creator: "0x1111111111111111111111111111111111111111",
           royalty_rate_pct: selectedAsset?.royaltySplit || 20,
         },
-        hamming_distance: 4,
-        similarity_index: "93.75%",
+        difference_score: 4,
+        similarity_score: "93.75%",
         lineage_depth: 2,
       },
       durationMs: 142,
     },
     {
       step: 2,
+      title: "Check Licensing Terms",
       tool: "check_usage_policy",
       status:
         agentActiveStep > 1
@@ -114,7 +135,7 @@ export default function LicensingConsole({
           : agentActiveStep === 1
           ? "running"
           : "idle",
-      description: "Inspect on-chain licensing terms & verify automated authorization",
+      description: "Inspect creator terms and verify automatic authorization",
       request: {
         method: "tools/call",
         params: {
@@ -145,6 +166,7 @@ export default function LicensingConsole({
     },
     {
       step: 3,
+      title: "Send Payment on Arbitrum",
       tool: "license_asset",
       status:
         agentActiveStep > 2
@@ -152,7 +174,7 @@ export default function LicensingConsole({
           : agentActiveStep === 2
           ? "running"
           : "idle",
-      description: "Trigger Arbitrum smart contract multi-recipient escrow & split",
+      description: "Execute smart contract to distribute instant creator splits",
       request: {
         method: "tools/call",
         params: {
@@ -188,6 +210,7 @@ export default function LicensingConsole({
     },
     {
       step: 4,
+      title: "Issue Tamper Proof Receipt",
       tool: "generate_proof_certificate",
       status:
         agentActiveStep > 3
@@ -195,7 +218,7 @@ export default function LicensingConsole({
           : agentActiveStep === 3
           ? "running"
           : "idle",
-      description: "Mint cryptographically signed NFT receipt & register on IPFS registry",
+      description: "Create digital license receipt and record on permanent registry",
       request: {
         method: "tools/call",
         params: {
@@ -208,9 +231,9 @@ export default function LicensingConsole({
       },
       response: {
         certificate_token_id: "0x7a892b...4092",
-        ipfs_manifest_cid: "bafybeiczsscdspl7kiog7eoxikx4w646s",
+        permanent_storage_id: "bafybeiczsscdspl7kiog7eoxikx4w646s",
         onchain_proof_verified: true,
-        eigenmark_registry_status: "ACTIVE_VALID",
+        registry_status: "ACTIVE_VALID",
       },
       durationMs: 195,
     },
@@ -246,8 +269,8 @@ export default function LicensingConsole({
 
     setIsProcessing(true);
     setLogs([
-      "Connecting wallet and verifying testnet USDC balance",
-      "Broadcasting smart contract transaction to Arbitrum Sepolia...",
+      "Connecting wallet and verifying USDC balance",
+      "Broadcasting transaction to Arbitrum network...",
     ]);
 
     try {
@@ -262,12 +285,12 @@ export default function LicensingConsole({
         ...prev,
         `Resolving parent lineage: royalty split of ${target.royaltySplit}%`,
         `Transferring automated splits: ${price * (target.royaltySplit / 100)} USDC to primary creator, ${price * (1 - target.royaltySplit / 100)} USDC to derivative creator`,
-        "Mining block on Arbitrum and writing license certificate to immutable registry",
-        "License settlement successful, On-Chain Event 0xLicenseSettled emitted",
+        "Writing license certificate to immutable registry",
+        "License settlement successful and recorded on chain",
       ]);
     } catch (error) {
       console.error("Purchase failed:", error);
-      setLogs((prev) => [...prev, "Transaction rejected or failed."]);
+      setLogs((prev) => [...prev, "Transaction failed or was rejected."]);
     } finally {
       setIsProcessing(false);
     }
@@ -294,176 +317,179 @@ export default function LicensingConsole({
   }));
 
   return (
-    <div className="w-full max-w-4xl bg-surface p-6 sm:p-8 rounded-3xl mx-auto my-12 border border-surface-active/30">
-      {/* Header & Tabs */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-surface-active/40 text-left">
+    <div className="w-full max-w-4xl bg-surface p-6 sm:p-10 rounded-3xl mx-auto my-10">
+      {/* Header and Mode Selector */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-10 text-left">
         <div>
           <span className="text-xs uppercase tracking-widest text-brand font-normal block mb-1">
-            Arbitrum Sepolia Settlement Layer
+            Automated Licensing and Settlement
           </span>
           <h2 className="text-2xl font-light text-text-primary tracking-tight">
-            Settlement & Agent Console
+            Licensing Console
           </h2>
-          <p className="text-xs font-light text-text-muted mt-1 leading-relaxed">
-            Verify provenance, execute automated split contracts, or simulate autonomous MCP agent negotiations.
+          <p className="text-xs font-light text-text-muted mt-1 leading-relaxed max-w-xl">
+            Review ownership records, automate creator royalty payouts, and run autonomous agent licensing workflows.
           </p>
         </div>
 
         {/* Tab Buttons */}
-        <div className="inline-flex bg-surface-active/50 p-1 rounded-2xl self-start sm:self-auto">
+        <div className="flex gap-2 self-start sm:self-auto">
           <button
             onClick={() => setActiveTab("agent")}
-            className={`px-4 py-2 text-xs rounded-xl transition-all cursor-pointer font-light ${
+            className={`px-4 py-2.5 text-xs rounded-xl transition-colors duration-150 cursor-pointer font-light ${
               activeTab === "agent"
-                ? "bg-brand text-background font-normal shadow-sm"
+                ? "bg-surface-active text-text-primary font-normal"
                 : "text-text-muted hover:text-text-primary"
             }`}
           >
-            Autonomous Agent (MCP)
+            Autonomous Agent
           </button>
           <button
             onClick={() => setActiveTab("manual")}
-            className={`px-4 py-2 text-xs rounded-xl transition-all cursor-pointer font-light ${
+            className={`px-4 py-2.5 text-xs rounded-xl transition-colors duration-150 cursor-pointer font-light ${
               activeTab === "manual"
-                ? "bg-brand text-background font-normal shadow-sm"
+                ? "bg-surface-active text-text-primary font-normal"
                 : "text-text-muted hover:text-text-primary"
             }`}
           >
-            Manual Settlement
+            Manual Licensing
           </button>
         </div>
       </div>
 
-      {/* VIEW 1: AUTONOMOUS AI AGENT SIMULATION */}
+      {/* VIEW 1: AUTONOMOUS AGENT WORKFLOW */}
       {activeTab === "agent" && (
-        <div className="flex flex-col gap-6 text-left">
-          {/* Agent Context Card */}
-          <div className="bg-surface-active/30 p-5 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-center gap-3.5">
-              <div className="w-10 h-10 rounded-xl bg-brand/10 border border-brand/20 flex items-center justify-center font-mono text-xs text-brand font-medium">
-                MCP
-              </div>
+        <div className="flex flex-col gap-8 text-left">
+          {/* Agent Configuration and Action Area */}
+          <div className="bg-surface-active/20 p-6 rounded-2xl flex flex-col gap-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-normal text-text-primary">
-                    Agent-0xSynthesis (Claude 3.7 / Cursor MCP)
-                  </h3>
-                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] bg-brand/10 text-brand">
-                    <span className="w-1.5 h-1.5 rounded-full bg-brand animate-pulse"></span>
-                    Ready
-                  </span>
-                </div>
-                <p className="text-[11px] font-mono text-text-muted mt-0.5">
-                  Protocol: Model Context Protocol (v2024-11-05) &bull; Settlement: Arbitrum Sepolia
+                <h3 className="text-sm font-normal text-text-primary">
+                  Licensing Agent (Claude and Cursor MCP)
+                </h3>
+                <p className="text-xs font-light text-text-muted mt-1">
+                  Connected via Model Context Protocol. Settling on Arbitrum network.
                 </p>
               </div>
+              <span className="text-xs text-brand font-light">
+                Status: Ready
+              </span>
             </div>
 
-            {/* Scenario Selector & Run Button */}
-            <div className="flex items-center gap-2.5">
-              <select
-                aria-label="Simulation Scenario"
-                value={agentScenario}
-                onChange={(e) => setAgentScenario(e.target.value as "derivative" | "training" | "lora")}
-                disabled={isAgentRunning}
-                className="bg-surface text-text-primary text-xs font-light px-3 py-2 rounded-xl outline-none border border-surface-active/50 cursor-pointer"
-              >
-                <option value="derivative">Scenario: Derivative Video Remix</option>
-                <option value="training">Scenario: Autonomous LLM Ingestion</option>
-                <option value="lora">Scenario: LoRA Style Fine-Tuning</option>
-              </select>
+            {/* Scenario Picker with Custom Dropdown & Run Button */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+              <div className="sm:col-span-2">
+                <Dropdown
+                  options={scenarioOptions}
+                  value={agentScenario}
+                  onChange={(val) => setAgentScenario(val as "derivative" | "training" | "lora")}
+                  label="Licensing Scenario"
+                />
+              </div>
 
-              <button
-                onClick={runAgentSimulation}
-                disabled={isAgentRunning}
-                className={`px-4 py-2 text-xs font-normal text-background rounded-xl transition-all cursor-pointer ${
-                  isAgentRunning
-                    ? "bg-surface-active/60 text-text-muted cursor-not-allowed"
-                    : "bg-brand hover:bg-text-primary"
-                }`}
-              >
-                {isAgentRunning ? "Executing MCP Tools..." : "Run Agent Simulation"}
-              </button>
-            </div>
-          </div>
-
-          {/* Stepper Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-            {agentSteps.map((step, idx) => {
-              const isCurrent = agentActiveStep === idx;
-              const isDone = agentActiveStep > idx || agentCompleted;
-              return (
-                <div
-                  key={step.tool}
-                  onClick={() => setExpandedToolIndex(idx)}
-                  className={`p-4 rounded-2xl cursor-pointer transition-all border ${
-                    expandedToolIndex === idx
-                      ? "border-brand bg-surface-active/40"
-                      : "border-transparent bg-surface-active/20 hover:bg-surface-active/30"
+              <div className="w-full">
+                <button
+                  onClick={runAgentSimulation}
+                  disabled={isAgentRunning}
+                  className={`w-full h-12 text-xs font-normal text-background rounded-xl transition-colors duration-150 cursor-pointer ${
+                    isAgentRunning
+                      ? "bg-surface-active/50 text-text-muted cursor-not-allowed"
+                      : "bg-brand hover:bg-text-primary"
                   }`}
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] uppercase font-mono tracking-wider text-text-muted">
-                      Step 0{step.step}
-                    </span>
-                    <span
-                      className={`text-[9px] px-2 py-0.5 rounded-full font-mono uppercase tracking-wider ${
-                        isDone
-                          ? "bg-success/10 text-success"
-                          : isCurrent
-                          ? "bg-brand/20 text-brand animate-pulse"
-                          : "bg-surface text-text-muted"
-                      }`}
-                    >
-                      {isDone ? "Settled" : isCurrent ? "Executing" : "Queued"}
-                    </span>
-                  </div>
-                  <h4 className="text-xs font-mono text-text-primary truncate">
-                    {step.tool}()
-                  </h4>
-                  <p className="text-[10px] font-light text-text-muted mt-1 line-clamp-2 leading-relaxed">
-                    {step.description}
-                  </p>
-                </div>
-              );
-            })}
+                  {isAgentRunning ? "Running Workflow..." : "Run Agent Workflow"}
+                </button>
+              </div>
+            </div>
           </div>
 
-          {/* Expanded Telemetry & Inspector */}
+          {/* Steps: Spacious 2-Column Grid */}
+          <div className="flex flex-col gap-3">
+            <span className="text-xs uppercase tracking-wider text-text-muted font-light">
+              Autonomous Workflow Steps
+            </span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {agentSteps.map((step, idx) => {
+                const isCurrent = agentActiveStep === idx;
+                const isDone = agentActiveStep > idx || agentCompleted;
+                const isSelected = expandedToolIndex === idx;
+
+                return (
+                  <div
+                    key={step.tool}
+                    onClick={() => setExpandedToolIndex(idx)}
+                    className={`p-5 rounded-2xl cursor-pointer transition-colors duration-150 text-left ${
+                      isSelected
+                        ? "bg-surface-active/60"
+                        : "bg-surface-active/20 hover:bg-surface-active/35"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-xs uppercase tracking-wider text-text-muted font-light">
+                        Step 0{step.step}
+                      </span>
+                      <span
+                        className={`text-xs font-light ${
+                          isDone
+                            ? "text-success"
+                            : isCurrent
+                            ? "text-brand font-normal"
+                            : "text-text-muted"
+                        }`}
+                      >
+                        {isDone ? "Completed" : isCurrent ? "In Progress" : "Waiting"}
+                      </span>
+                    </div>
+
+                    <h4 className="text-sm font-medium text-text-primary mb-1">
+                      {step.title}
+                    </h4>
+
+                    <div className="text-xs font-mono text-text-muted mb-2">
+                      {step.tool}()
+                    </div>
+
+                    <p className="text-xs font-light text-text-muted leading-relaxed">
+                      {step.description}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Expanded Step Details & Payloads */}
           {expandedToolIndex !== null && (
-            <div className="bg-surface-active/25 p-5 rounded-2xl border border-surface-active/40 font-mono text-xs">
-              <div className="flex items-center justify-between mb-3 pb-2 border-b border-surface-active/30">
-                <div className="flex items-center gap-2">
-                  <span className="text-brand text-xs">●</span>
-                  <span className="text-text-primary font-medium">
-                    Tool Telemetry: {agentSteps[expandedToolIndex].tool}
+            <div className="bg-surface-active/20 p-6 rounded-2xl">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-5">
+                <div>
+                  <span className="text-xs uppercase tracking-wider text-text-muted font-light block">
+                    Execution Details
                   </span>
-                  <span className="text-[10px] text-text-muted">
-                    ({agentSteps[expandedToolIndex].durationMs}ms roundtrip)
-                  </span>
+                  <h4 className="text-sm font-medium text-text-primary mt-1">
+                    {agentSteps[expandedToolIndex].title} ({agentSteps[expandedToolIndex].tool})
+                  </h4>
                 </div>
-                <span className="text-[10px] text-text-muted uppercase tracking-wider">
-                  JSON-RPC 2.0 Over STDIO
+                <span className="text-xs font-light text-text-muted">
+                  Response time: {agentSteps[expandedToolIndex].durationMs} ms
                 </span>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Request Payload */}
                 <div>
-                  <span className="text-[10px] uppercase tracking-wider text-text-muted block mb-1.5 font-sans">
-                    Agent Request Payload
+                  <span className="text-xs uppercase tracking-wider text-text-muted block mb-2 font-light">
+                    Agent Request
                   </span>
-                  <pre className="bg-background/80 p-3.5 rounded-xl text-[10px] text-text-muted overflow-x-auto leading-relaxed border border-surface-active/30">
+                  <pre className="bg-surface-active/40 p-4 rounded-xl text-xs text-text-muted overflow-x-auto leading-relaxed font-mono">
                     {JSON.stringify(agentSteps[expandedToolIndex].request, null, 2)}
                   </pre>
                 </div>
 
-                {/* Return Payload */}
                 <div>
-                  <span className="text-[10px] uppercase tracking-wider text-brand block mb-1.5 font-sans">
-                    Eigenmark Contract & MCP Response
+                  <span className="text-xs uppercase tracking-wider text-text-muted block mb-2 font-light">
+                    Contract Response
                   </span>
-                  <pre className="bg-background/80 p-3.5 rounded-xl text-[10px] text-brand/90 overflow-x-auto leading-relaxed border border-surface-active/30">
+                  <pre className="bg-surface-active/40 p-4 rounded-xl text-xs text-brand/90 overflow-x-auto leading-relaxed font-mono">
                     {JSON.stringify(agentSteps[expandedToolIndex].response, null, 2)}
                   </pre>
                 </div>
@@ -473,28 +499,23 @@ export default function LicensingConsole({
 
           {/* Autonomous Execution Receipt */}
           {agentCompleted && (
-            <div className="bg-success/5 border border-success/20 p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-success/10 flex items-center justify-center text-success font-mono">
-                  ✓
-                </div>
-                <div>
-                  <h4 className="text-text-primary font-normal">
-                    Autonomous Settlement Complete
-                  </h4>
-                  <p className="text-[10px] font-mono text-text-muted">
-                    Arbitrum Sepolia TX: 0x4f829b10a5620984918e907d471026027ab57849103c80918a20984719082049
-                  </p>
-                </div>
+            <div className="bg-surface-active/30 p-6 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h4 className="text-sm font-normal text-text-primary">
+                  Licensing workflow completed successfully
+                </h4>
+                <p className="text-xs font-mono text-text-muted mt-1">
+                  Transaction ID: 0x4f829b10a5620984918e907d471026027ab57849103c80918a20984719082049
+                </p>
               </div>
-              <div className="flex items-center gap-4 text-right">
+              <div className="flex items-center gap-6">
                 <div>
-                  <span className="text-[10px] text-text-muted block">Total Settled</span>
-                  <span className="text-text-primary font-mono font-medium">{price}.00 USDC</span>
+                  <span className="text-xs text-text-muted block font-light">Total Settled</span>
+                  <span className="text-sm font-mono text-text-primary font-medium">{price}.00 USDC</span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-text-muted block">L2 Gas Cost</span>
-                  <span className="text-brand font-mono">&lt; $0.002</span>
+                  <span className="text-xs text-text-muted block font-light">Network Gas Fee</span>
+                  <span className="text-sm font-mono text-text-primary font-medium">Under 1 cent</span>
                 </div>
               </div>
             </div>
@@ -502,11 +523,11 @@ export default function LicensingConsole({
         </div>
       )}
 
-      {/* VIEW 2: MANUAL SETTLEMENT (DAPP MODE) */}
+      {/* VIEW 2: MANUAL LICENSING */}
       {activeTab === "manual" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Buy Form */}
-          <div className="text-left flex flex-col gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
+          {/* Purchase Form */}
+          <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-1">
               <Dropdown
                 options={derivativeOptions}
@@ -525,17 +546,17 @@ export default function LicensingConsole({
                 type="number"
                 value={price}
                 disabled
-                className="w-full bg-surface-active/50 text-text-muted text-sm font-light h-12 px-4 rounded-xl outline-none border-none mt-1"
+                className="w-full bg-surface-active/40 text-text-muted text-sm font-light h-12 px-4 rounded-xl outline-none mt-1"
               />
-              <span className="text-[10px] text-text-muted mt-1">
-                Direct on-chain micro-settlement price for demo verification.
+              <span className="text-xs text-text-muted mt-1 font-light">
+                Direct on chain micro settlement price for verification.
               </span>
             </div>
 
             {selectedAsset && (
-              <div className="bg-surface-active/40 p-4 rounded-xl text-xs font-light flex flex-col gap-2">
-                <span className="text-[10px] uppercase tracking-wider text-brand font-normal mb-1 block">
-                  Expected settlement split
+              <div className="bg-surface-active/20 p-5 rounded-2xl text-xs font-light flex flex-col gap-3">
+                <span className="text-xs uppercase tracking-wider text-brand font-normal block">
+                  Expected creator payout split
                 </span>
                 <div className="flex justify-between">
                   <span>
@@ -546,7 +567,9 @@ export default function LicensingConsole({
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Derivative creator ({getDerivativeCreatorName(selectedAsset.id)})</span>
+                  <span>
+                    Derivative creator ({getDerivativeCreatorName(selectedAsset.id)})
+                  </span>
                   <span className="font-mono text-text-primary">
                     {price * (1 - selectedAsset.royaltySplit / 100)} USDC ({100 - selectedAsset.royaltySplit}%)
                   </span>
@@ -557,31 +580,31 @@ export default function LicensingConsole({
             <button
               onClick={handlePurchase}
               disabled={!selectedAsset || isProcessing}
-              className={`w-full py-4 text-sm font-normal text-background rounded-full transition-colors duration-200 cursor-pointer ${
+              className={`w-full h-12 text-sm font-normal text-background rounded-xl transition-colors duration-150 cursor-pointer ${
                 selectedAsset && !isProcessing
                   ? "bg-brand hover:bg-text-primary"
                   : "bg-surface-active/50 text-text-muted cursor-not-allowed"
               }`}
             >
-              {isProcessing ? "Processing Arbitrum split..." : "Execute License Contract"}
+              {isProcessing ? "Processing Arbitrum split..." : "Confirm and Pay License"}
             </button>
           </div>
 
           {/* Processing Logs */}
-          <div className="bg-surface-active/30 p-6 rounded-2xl text-left flex flex-col justify-between min-h-[300px]">
+          <div className="bg-surface-active/20 p-6 rounded-2xl flex flex-col justify-between min-h-[300px]">
             <div>
-              <span className="text-[10px] uppercase tracking-widest text-text-muted font-normal block mb-4">
-                Contract transaction telemetry
+              <span className="text-xs uppercase tracking-widest text-text-muted font-normal block mb-4">
+                License transaction telemetry
               </span>
 
               {logs.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <span className="text-xs font-light text-text-muted max-w-[220px]">
-                    Initiate a licensing contract on the left or test the agent tab to view live on-chain logs.
+                  <span className="text-xs font-light text-text-muted max-w-[240px] leading-relaxed">
+                    Select a creative work on the left or test the autonomous agent tab to view live transaction telemetry.
                   </span>
                 </div>
               ) : (
-                <div className="flex flex-col gap-2.5 font-mono text-[10px] leading-relaxed">
+                <div className="flex flex-col gap-3 font-mono text-xs leading-relaxed">
                   {logs.map((log, idx) => (
                     <div key={idx} className="flex gap-2 items-start">
                       <span className="text-brand">✓</span>
@@ -589,9 +612,8 @@ export default function LicensingConsole({
                     </div>
                   ))}
                   {isProcessing && (
-                    <div className="flex gap-2 items-center text-text-muted mt-1 animate-pulse">
-                      <span className="w-1.5 h-1.5 bg-brand rounded-full"></span>
-                      <span>Mining Arbitrum transaction...</span>
+                    <div className="text-text-muted text-xs font-light">
+                      Processing transaction on Arbitrum...
                     </div>
                   )}
                 </div>
@@ -599,10 +621,10 @@ export default function LicensingConsole({
             </div>
 
             {!isProcessing && logs.length > 0 && (
-              <div className="mt-4 pt-4 border-t border-surface/50 text-xs font-light text-success flex flex-col gap-1">
-                <span>Arbitrum Sepolia Settlement Confirmed</span>
-                <span className="text-[9px] font-mono text-text-muted truncate">
-                  Tx: 0x{Math.random().toString(36).substring(2, 15)}a9b4c09d8e7f
+              <div className="mt-4 pt-4 text-xs font-light text-success flex flex-col gap-1">
+                <span>Arbitrum settlement confirmed</span>
+                <span className="text-xs font-mono text-text-muted truncate">
+                  Tx: 0x4f829b10a5620984918e907d471026027ab57849103c80918a20984719082049
                 </span>
               </div>
             )}
@@ -612,8 +634,8 @@ export default function LicensingConsole({
 
       {/* Existing Agreements */}
       {agreements.length > 0 && (
-        <div className="mt-10 pt-8 border-t border-surface-active/40 text-left">
-          <span className="text-xs uppercase tracking-wider text-text-muted block mb-4">
+        <div className="mt-12 text-left">
+          <span className="text-xs uppercase tracking-wider text-text-muted block mb-4 font-light">
             Active licensing certificates ({agreements.length})
           </span>
           <div className="flex flex-col gap-3">
@@ -622,21 +644,21 @@ export default function LicensingConsole({
               return (
                 <div
                   key={agreement.id}
-                  className="bg-surface-active/30 p-4 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs font-light border border-surface-active/30"
+                  className="bg-surface-active/20 p-5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs font-light"
                 >
                   <div>
                     <h4 className="text-sm font-normal text-text-primary">
                       {asset?.title || "Derivative Asset"}
                     </h4>
-                    <p className="text-[10px] font-mono text-text-muted mt-0.5">
+                    <p className="text-xs font-mono text-text-muted mt-1">
                       Licensee: {agreement.licenseeAddress}
                     </p>
                   </div>
                   <div className="text-left sm:text-right">
-                    <span className="text-text-primary block font-mono">
+                    <span className="text-text-primary block font-mono text-sm">
                       {agreement.price} USDC
                     </span>
-                    <span className="text-[10px] text-text-muted block mt-0.5 font-mono">
+                    <span className="text-xs text-text-muted block mt-0.5">
                       Automated split executed
                     </span>
                   </div>
@@ -649,4 +671,3 @@ export default function LicensingConsole({
     </div>
   );
 }
-
