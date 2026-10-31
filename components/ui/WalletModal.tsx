@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { IconX, IconWallet } from "@tabler/icons-react";
 import { useConnect } from "wagmi";
+import { useRouter } from "next/navigation";
+import { useAppState } from "@/context/StateContext";
 
 interface WalletModalProps {
   isOpen: boolean;
@@ -11,10 +13,18 @@ interface WalletModalProps {
 }
 
 export default function WalletModal({ isOpen, onClose, onConnect }: WalletModalProps) {
+  const router = useRouter();
+  const { enterGuestMode } = useAppState();
   const { connectors } = useConnect();
   const [connectingWallet, setConnectingWallet] = useState<string | null>(null);
 
   if (!isOpen) return null;
+
+  const handleGuestEntry = () => {
+    enterGuestMode();
+    onClose();
+    router.push("/portal/register");
+  };
 
   const handleWalletSelect = (connector: any) => {
     setConnectingWallet(connector.name);
@@ -96,6 +106,13 @@ export default function WalletModal({ isOpen, onClose, onConnect }: WalletModalP
                 ))
               )}
             </div>
+
+            <button
+              onClick={handleGuestEntry}
+              className="w-full mt-3 py-3 px-4 bg-surface-active hover:bg-surface-active/80 text-center text-xs font-normal text-text-primary rounded-xl cursor-pointer transition-all duration-200"
+            >
+              Explore Console (Guest Review Mode)
+            </button>
           </div>
         )}
       </div>

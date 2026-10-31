@@ -45,6 +45,7 @@ interface StateContextType {
   assets: Array<Asset>;
   agreements: Array<LicensingAgreement>;
   isConnected: boolean;
+  enterGuestMode: () => void;
   connectWallet: (connectorOrName: any) => void;
   disconnectWallet: () => void;
   registerAsset: (asset: {
@@ -82,8 +83,20 @@ function StateProviderContent({ children }: { children: ReactNode }) {
   const { disconnect } = useDisconnect();
   const { writeContractAsync } = useWriteContract();
 
-  const isConnected = isWalletConnected;
+  const [isGuestMode, setIsGuestMode] = useState<boolean>(false);
+  const isConnected = isWalletConnected || isGuestMode;
   const [currentUser, setCurrentUser] = useState<User>(defaultUser);
+
+  const enterGuestMode = () => {
+    setIsGuestMode(true);
+    const guestUser: User = {
+      name: "Guest Evaluator",
+      address: "0x71207757FB3F8118EC0BAb8f2251E09973892306",
+      role: "Hackathon Judge / Evaluator",
+    };
+    setCurrentUser(guestUser);
+    setUsers([guestUser]);
+  };
   const [users, setUsers] = useState<Array<User>>([]);
   const [assets, setAssets] = useState<Array<Asset>>([]);
   const [agreements, setAgreements] = useState<Array<LicensingAgreement>>([]);
@@ -363,6 +376,7 @@ function StateProviderContent({ children }: { children: ReactNode }) {
         assets,
         agreements,
         isConnected,
+        enterGuestMode,
         connectWallet,
         disconnectWallet,
         registerAsset,

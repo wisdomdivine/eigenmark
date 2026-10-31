@@ -7,7 +7,7 @@ import { IconLock, IconMenu2, IconWallet } from "@tabler/icons-react";
 import { useConnect } from "wagmi";
 
 function PortalContent({ children }: { children: React.ReactNode }) {
-  const { isConnected, connectWallet } = useAppState();
+  const { isConnected, connectWallet, enterGuestMode } = useAppState();
   const { connectors } = useConnect();
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
 
@@ -70,6 +70,13 @@ function PortalContent({ children }: { children: React.ReactNode }) {
                 ))
               )}
             </div>
+
+            <button
+              onClick={enterGuestMode}
+              className="w-full mt-4 py-3.5 px-4 bg-surface-active hover:bg-surface-active/80 text-center text-xs font-normal text-text-primary rounded-xl cursor-pointer transition-all duration-200"
+            >
+              Explore as Guest (Judge Review Mode)
+            </button>
           </div>
         </div>
       </div>
