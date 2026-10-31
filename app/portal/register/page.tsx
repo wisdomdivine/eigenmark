@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { useAppState } from "@/context/StateContext";
 import RegisterForm from "@/components/dashboard/RegisterForm";
 import { useRouter } from "next/navigation";
@@ -32,7 +33,12 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="w-full flex items-center justify-center min-h-[80vh]">
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      className="w-full flex items-center justify-center min-h-[80vh]"
+    >
       <RegisterForm
         currentUser={currentUser}
         onRegister={handleRegister}
@@ -40,6 +46,6 @@ export default function RegisterPage() {
         isDeriving={false}
         isSubmitting={isSubmitting}
       />
-    </div>
+    </motion.div>
   );
 }

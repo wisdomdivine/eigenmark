@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import Dropdown from "@/components/ui/Dropdown";
 
 interface Asset {
@@ -317,7 +318,12 @@ export default function LicensingConsole({
   }));
 
   return (
-    <div className="w-full max-w-4xl bg-surface p-6 sm:p-10 rounded-3xl mx-auto my-10">
+    <motion.div
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: "easeOut" }}
+      className="w-full max-w-4xl bg-surface p-6 sm:p-10 rounded-3xl mx-auto my-10"
+    >
       {/* Header and Mode Selector */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-10 text-left">
         <div>
@@ -357,280 +363,325 @@ export default function LicensingConsole({
         </div>
       </div>
 
-      {/* VIEW 1: AUTONOMOUS AGENT WORKFLOW */}
-      {activeTab === "agent" && (
-        <div className="flex flex-col gap-8 text-left">
-          {/* Agent Configuration and Action Area */}
-          <div className="bg-surface-active/20 p-6 rounded-2xl flex flex-col gap-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <div>
-                <h3 className="text-sm font-normal text-text-primary">
-                  Licensing Agent (Claude and Cursor MCP)
-                </h3>
-                <p className="text-xs font-light text-text-muted mt-1">
-                  Connected via Model Context Protocol. Settling on Arbitrum network.
-                </p>
+      {/* VIEW SWITCHER ANIMATION */}
+      <AnimatePresence mode="wait">
+        {activeTab === "agent" ? (
+          <motion.div
+            key="agent-view"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.22 }}
+            className="flex flex-col gap-8 text-left"
+          >
+            {/* Agent Configuration and Action Area */}
+            <div className="bg-surface-active/20 p-6 rounded-2xl flex flex-col gap-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <h3 className="text-sm font-normal text-text-primary">
+                    Licensing Agent (Claude and Cursor MCP)
+                  </h3>
+                  <p className="text-xs font-light text-text-muted mt-1">
+                    Connected via Model Context Protocol. Settling on Arbitrum network.
+                  </p>
+                </div>
+                <span className="text-xs text-brand font-light">
+                  Status: Ready
+                </span>
               </div>
-              <span className="text-xs text-brand font-light">
-                Status: Ready
-              </span>
+
+              {/* Scenario Picker with Custom Dropdown & Run Button */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+                <div className="sm:col-span-2">
+                  <Dropdown
+                    options={scenarioOptions}
+                    value={agentScenario}
+                    onChange={(val) => setAgentScenario(val as "derivative" | "training" | "lora")}
+                    label="Licensing Scenario"
+                  />
+                </div>
+
+                <div className="w-full">
+                  <motion.button
+                    whileTap={{ scale: isAgentRunning ? 1 : 0.98 }}
+                    onClick={runAgentSimulation}
+                    disabled={isAgentRunning}
+                    className={`w-full h-12 text-xs font-normal text-background rounded-xl transition-colors duration-150 cursor-pointer ${
+                      isAgentRunning
+                        ? "bg-surface-active/50 text-text-muted cursor-not-allowed"
+                        : "bg-brand hover:bg-text-primary"
+                    }`}
+                  >
+                    {isAgentRunning ? "Running Workflow..." : "Run Agent Workflow"}
+                  </motion.button>
+                </div>
+              </div>
             </div>
 
-            {/* Scenario Picker with Custom Dropdown & Run Button */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
-              <div className="sm:col-span-2">
+            {/* Steps: Spacious 2-Column Grid */}
+            <div className="flex flex-col gap-3">
+              <span className="text-xs uppercase tracking-wider text-text-muted font-light">
+                Autonomous Workflow Steps
+              </span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {agentSteps.map((step, idx) => {
+                  const isCurrent = agentActiveStep === idx;
+                  const isDone = agentActiveStep > idx || agentCompleted;
+                  const isSelected = expandedToolIndex === idx;
+
+                  return (
+                    <motion.div
+                      key={step.tool}
+                      onClick={() => setExpandedToolIndex(idx)}
+                      whileHover={{ scale: 1.008 }}
+                      whileTap={{ scale: 0.992 }}
+                      transition={{ duration: 0.15 }}
+                      className={`p-5 rounded-2xl cursor-pointer transition-colors duration-150 text-left ${
+                        isSelected
+                          ? "bg-surface-active/60"
+                          : "bg-surface-active/20 hover:bg-surface-active/35"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-xs uppercase tracking-wider text-text-muted font-light">
+                          Step 0{step.step}
+                        </span>
+                        <span
+                          className={`text-xs font-light ${
+                            isDone
+                              ? "text-success"
+                              : isCurrent
+                              ? "text-brand font-normal"
+                              : "text-text-muted"
+                          }`}
+                        >
+                          {isDone ? "Completed" : isCurrent ? "In Progress" : "Waiting"}
+                        </span>
+                      </div>
+
+                      <h4 className="text-sm font-medium text-text-primary mb-1">
+                        {step.title}
+                      </h4>
+
+                      <div className="text-xs font-mono text-text-muted mb-2">
+                        {step.tool}()
+                      </div>
+
+                      <p className="text-xs font-light text-text-muted leading-relaxed">
+                        {step.description}
+                      </p>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Expanded Step Details & Payloads */}
+            <AnimatePresence mode="wait">
+              {expandedToolIndex !== null && (
+                <motion.div
+                  key={`tool-details-${expandedToolIndex}`}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.2 }}
+                  className="bg-surface-active/20 p-6 rounded-2xl"
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-5">
+                    <div>
+                      <span className="text-xs uppercase tracking-wider text-text-muted font-light block">
+                        Execution Details
+                      </span>
+                      <h4 className="text-sm font-medium text-text-primary mt-1">
+                        {agentSteps[expandedToolIndex].title} ({agentSteps[expandedToolIndex].tool})
+                      </h4>
+                    </div>
+                    <span className="text-xs font-light text-text-muted">
+                      Response time: {agentSteps[expandedToolIndex].durationMs} ms
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <span className="text-xs uppercase tracking-wider text-text-muted block mb-2 font-light">
+                        Agent Request
+                      </span>
+                      <pre className="bg-surface-active/40 p-4 rounded-xl text-xs text-text-muted overflow-x-auto leading-relaxed font-mono">
+                        {JSON.stringify(agentSteps[expandedToolIndex].request, null, 2)}
+                      </pre>
+                    </div>
+
+                    <div>
+                      <span className="text-xs uppercase tracking-wider text-text-muted block mb-2 font-light">
+                        Contract Response
+                      </span>
+                      <pre className="bg-surface-active/40 p-4 rounded-xl text-xs text-brand/90 overflow-x-auto leading-relaxed font-mono">
+                        {JSON.stringify(agentSteps[expandedToolIndex].response, null, 2)}
+                      </pre>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Autonomous Execution Receipt */}
+            <AnimatePresence>
+              {agentCompleted && (
+                <motion.div
+                  initial={{ opacity: 0, y: 12, scale: 0.99 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
+                  className="bg-surface-active/30 p-6 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                >
+                  <div>
+                    <h4 className="text-sm font-normal text-text-primary">
+                      Licensing workflow completed successfully
+                    </h4>
+                    <p className="text-xs font-mono text-text-muted mt-1">
+                      Transaction ID: 0x4f829b10a5620984918e907d471026027ab57849103c80918a20984719082049
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-6">
+                    <div>
+                      <span className="text-xs text-text-muted block font-light">Total Settled</span>
+                      <span className="text-sm font-mono text-text-primary font-medium">{price}.00 USDC</span>
+                    </div>
+                    <div>
+                      <span className="text-xs text-text-muted block font-light">Network Gas Fee</span>
+                      <span className="text-sm font-mono text-text-primary font-medium">Under 1 cent</span>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="manual-view"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.22 }}
+            className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left"
+          >
+            {/* Purchase Form */}
+            <div className="flex flex-col gap-6">
+              <div className="flex flex-col gap-1">
                 <Dropdown
-                  options={scenarioOptions}
-                  value={agentScenario}
-                  onChange={(val) => setAgentScenario(val as "derivative" | "training" | "lora")}
-                  label="Licensing Scenario"
+                  options={derivativeOptions}
+                  value={selectedAssetId || (derivativeOptions[0]?.value ?? "")}
+                  onChange={setSelectedAssetId}
+                  label="Select Creative Work"
+                  placeholder="Select a derivative work"
                 />
               </div>
 
-              <div className="w-full">
-                <button
-                  onClick={runAgentSimulation}
-                  disabled={isAgentRunning}
-                  className={`w-full h-12 text-xs font-normal text-background rounded-xl transition-colors duration-150 cursor-pointer ${
-                    isAgentRunning
-                      ? "bg-surface-active/50 text-text-muted cursor-not-allowed"
-                      : "bg-brand hover:bg-text-primary"
-                  }`}
-                >
-                  {isAgentRunning ? "Running Workflow..." : "Run Agent Workflow"}
-                </button>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs uppercase tracking-wider text-text-muted">
+                  Licensing Fee (USDC)
+                </label>
+                <input
+                  type="number"
+                  value={price}
+                  disabled
+                  className="w-full bg-surface-active/40 text-text-muted text-sm font-light h-12 px-4 rounded-xl outline-none mt-1"
+                />
+                <span className="text-xs text-text-muted mt-1 font-light">
+                  Direct on chain micro settlement price for verification.
+                </span>
               </div>
-            </div>
-          </div>
 
-          {/* Steps: Spacious 2-Column Grid */}
-          <div className="flex flex-col gap-3">
-            <span className="text-xs uppercase tracking-wider text-text-muted font-light">
-              Autonomous Workflow Steps
-            </span>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {agentSteps.map((step, idx) => {
-                const isCurrent = agentActiveStep === idx;
-                const isDone = agentActiveStep > idx || agentCompleted;
-                const isSelected = expandedToolIndex === idx;
-
-                return (
-                  <div
-                    key={step.tool}
-                    onClick={() => setExpandedToolIndex(idx)}
-                    className={`p-5 rounded-2xl cursor-pointer transition-colors duration-150 text-left ${
-                      isSelected
-                        ? "bg-surface-active/60"
-                        : "bg-surface-active/20 hover:bg-surface-active/35"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-xs uppercase tracking-wider text-text-muted font-light">
-                        Step 0{step.step}
-                      </span>
-                      <span
-                        className={`text-xs font-light ${
-                          isDone
-                            ? "text-success"
-                            : isCurrent
-                            ? "text-brand font-normal"
-                            : "text-text-muted"
-                        }`}
-                      >
-                        {isDone ? "Completed" : isCurrent ? "In Progress" : "Waiting"}
-                      </span>
-                    </div>
-
-                    <h4 className="text-sm font-medium text-text-primary mb-1">
-                      {step.title}
-                    </h4>
-
-                    <div className="text-xs font-mono text-text-muted mb-2">
-                      {step.tool}()
-                    </div>
-
-                    <p className="text-xs font-light text-text-muted leading-relaxed">
-                      {step.description}
-                    </p>
+              {selectedAsset && (
+                <div className="bg-surface-active/20 p-5 rounded-2xl text-xs font-light flex flex-col gap-3">
+                  <span className="text-xs uppercase tracking-wider text-brand font-normal block">
+                    Expected creator payout split
+                  </span>
+                  <div className="flex justify-between">
+                    <span>
+                      Original creator ({getParentCreatorName(selectedAsset.id)})
+                    </span>
+                    <span className="font-mono text-text-primary">
+                      {price * (selectedAsset.royaltySplit / 100)} USDC ({selectedAsset.royaltySplit}%)
+                    </span>
                   </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Expanded Step Details & Payloads */}
-          {expandedToolIndex !== null && (
-            <div className="bg-surface-active/20 p-6 rounded-2xl">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-5">
-                <div>
-                  <span className="text-xs uppercase tracking-wider text-text-muted font-light block">
-                    Execution Details
-                  </span>
-                  <h4 className="text-sm font-medium text-text-primary mt-1">
-                    {agentSteps[expandedToolIndex].title} ({agentSteps[expandedToolIndex].tool})
-                  </h4>
-                </div>
-                <span className="text-xs font-light text-text-muted">
-                  Response time: {agentSteps[expandedToolIndex].durationMs} ms
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <span className="text-xs uppercase tracking-wider text-text-muted block mb-2 font-light">
-                    Agent Request
-                  </span>
-                  <pre className="bg-surface-active/40 p-4 rounded-xl text-xs text-text-muted overflow-x-auto leading-relaxed font-mono">
-                    {JSON.stringify(agentSteps[expandedToolIndex].request, null, 2)}
-                  </pre>
-                </div>
-
-                <div>
-                  <span className="text-xs uppercase tracking-wider text-text-muted block mb-2 font-light">
-                    Contract Response
-                  </span>
-                  <pre className="bg-surface-active/40 p-4 rounded-xl text-xs text-brand/90 overflow-x-auto leading-relaxed font-mono">
-                    {JSON.stringify(agentSteps[expandedToolIndex].response, null, 2)}
-                  </pre>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Autonomous Execution Receipt */}
-          {agentCompleted && (
-            <div className="bg-surface-active/30 p-6 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h4 className="text-sm font-normal text-text-primary">
-                  Licensing workflow completed successfully
-                </h4>
-                <p className="text-xs font-mono text-text-muted mt-1">
-                  Transaction ID: 0x4f829b10a5620984918e907d471026027ab57849103c80918a20984719082049
-                </p>
-              </div>
-              <div className="flex items-center gap-6">
-                <div>
-                  <span className="text-xs text-text-muted block font-light">Total Settled</span>
-                  <span className="text-sm font-mono text-text-primary font-medium">{price}.00 USDC</span>
-                </div>
-                <div>
-                  <span className="text-xs text-text-muted block font-light">Network Gas Fee</span>
-                  <span className="text-sm font-mono text-text-primary font-medium">Under 1 cent</span>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* VIEW 2: MANUAL LICENSING */}
-      {activeTab === "manual" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
-          {/* Purchase Form */}
-          <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-1">
-              <Dropdown
-                options={derivativeOptions}
-                value={selectedAssetId || (derivativeOptions[0]?.value ?? "")}
-                onChange={setSelectedAssetId}
-                label="Select Creative Work"
-                placeholder="Select a derivative work"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-xs uppercase tracking-wider text-text-muted">
-                Licensing Fee (USDC)
-              </label>
-              <input
-                type="number"
-                value={price}
-                disabled
-                className="w-full bg-surface-active/40 text-text-muted text-sm font-light h-12 px-4 rounded-xl outline-none mt-1"
-              />
-              <span className="text-xs text-text-muted mt-1 font-light">
-                Direct on chain micro settlement price for verification.
-              </span>
-            </div>
-
-            {selectedAsset && (
-              <div className="bg-surface-active/20 p-5 rounded-2xl text-xs font-light flex flex-col gap-3">
-                <span className="text-xs uppercase tracking-wider text-brand font-normal block">
-                  Expected creator payout split
-                </span>
-                <div className="flex justify-between">
-                  <span>
-                    Original creator ({getParentCreatorName(selectedAsset.id)})
-                  </span>
-                  <span className="font-mono text-text-primary">
-                    {price * (selectedAsset.royaltySplit / 100)} USDC ({selectedAsset.royaltySplit}%)
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span>
-                    Derivative creator ({getDerivativeCreatorName(selectedAsset.id)})
-                  </span>
-                  <span className="font-mono text-text-primary">
-                    {price * (1 - selectedAsset.royaltySplit / 100)} USDC ({100 - selectedAsset.royaltySplit}%)
-                  </span>
-                </div>
-              </div>
-            )}
-
-            <button
-              onClick={handlePurchase}
-              disabled={!selectedAsset || isProcessing}
-              className={`w-full h-12 text-sm font-normal text-background rounded-xl transition-colors duration-150 cursor-pointer ${
-                selectedAsset && !isProcessing
-                  ? "bg-brand hover:bg-text-primary"
-                  : "bg-surface-active/50 text-text-muted cursor-not-allowed"
-              }`}
-            >
-              {isProcessing ? "Processing Arbitrum split..." : "Confirm and Pay License"}
-            </button>
-          </div>
-
-          {/* Processing Logs */}
-          <div className="bg-surface-active/20 p-6 rounded-2xl flex flex-col justify-between min-h-[300px]">
-            <div>
-              <span className="text-xs uppercase tracking-widest text-text-muted font-normal block mb-4">
-                License transaction telemetry
-              </span>
-
-              {logs.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <span className="text-xs font-light text-text-muted max-w-[240px] leading-relaxed">
-                    Select a creative work on the left or test the autonomous agent tab to view live transaction telemetry.
-                  </span>
-                </div>
-              ) : (
-                <div className="flex flex-col gap-3 font-mono text-xs leading-relaxed">
-                  {logs.map((log, idx) => (
-                    <div key={idx} className="flex gap-2 items-start">
-                      <span className="text-brand">✓</span>
-                      <span className="text-text-primary">{log}</span>
-                    </div>
-                  ))}
-                  {isProcessing && (
-                    <div className="text-text-muted text-xs font-light">
-                      Processing transaction on Arbitrum...
-                    </div>
-                  )}
+                  <div className="flex justify-between">
+                    <span>
+                      Derivative creator ({getDerivativeCreatorName(selectedAsset.id)})
+                    </span>
+                    <span className="font-mono text-text-primary">
+                      {price * (1 - selectedAsset.royaltySplit / 100)} USDC ({100 - selectedAsset.royaltySplit}%)
+                    </span>
+                  </div>
                 </div>
               )}
+
+              <motion.button
+                whileTap={{ scale: !selectedAsset || isProcessing ? 1 : 0.98 }}
+                onClick={handlePurchase}
+                disabled={!selectedAsset || isProcessing}
+                className={`w-full h-12 text-sm font-normal text-background rounded-xl transition-colors duration-150 cursor-pointer ${
+                  selectedAsset && !isProcessing
+                    ? "bg-brand hover:bg-text-primary"
+                    : "bg-surface-active/50 text-text-muted cursor-not-allowed"
+                }`}
+              >
+                {isProcessing ? "Processing Arbitrum split..." : "Confirm and Pay License"}
+              </motion.button>
             </div>
 
-            {!isProcessing && logs.length > 0 && (
-              <div className="mt-4 pt-4 text-xs font-light text-success flex flex-col gap-1">
-                <span>Arbitrum settlement confirmed</span>
-                <span className="text-xs font-mono text-text-muted truncate">
-                  Tx: 0x4f829b10a5620984918e907d471026027ab57849103c80918a20984719082049
+            {/* Processing Logs */}
+            <div className="bg-surface-active/20 p-6 rounded-2xl flex flex-col justify-between min-h-[300px]">
+              <div>
+                <span className="text-xs uppercase tracking-widest text-text-muted font-normal block mb-4">
+                  License transaction telemetry
                 </span>
+
+                {logs.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <span className="text-xs font-light text-text-muted max-w-[240px] leading-relaxed">
+                      Select a creative work on the left or test the autonomous agent tab to view live transaction telemetry.
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-3 font-mono text-xs leading-relaxed">
+                    {logs.map((log, idx) => (
+                      <motion.div
+                        key={idx}
+                        initial={{ opacity: 0, x: -6 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="flex gap-2 items-start"
+                      >
+                        <span className="text-brand">✓</span>
+                        <span className="text-text-primary">{log}</span>
+                      </motion.div>
+                    ))}
+                    {isProcessing && (
+                      <div className="text-text-muted text-xs font-light">
+                        Processing transaction on Arbitrum...
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        </div>
-      )}
+
+              {!isProcessing && logs.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-4 pt-4 text-xs font-light text-success flex flex-col gap-1"
+                >
+                  <span>Arbitrum settlement confirmed</span>
+                  <span className="text-xs font-mono text-text-muted truncate">
+                    Tx: 0x4f829b10a5620984918e907d471026027ab57849103c80918a20984719082049
+                  </span>
+                </motion.div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Existing Agreements */}
       {agreements.length > 0 && (
@@ -668,6 +719,6 @@ export default function LicensingConsole({
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }

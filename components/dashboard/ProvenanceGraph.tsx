@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   IconNetwork,
   IconRadar,
@@ -108,7 +109,12 @@ export default function ProvenanceGraph({ assets }: ProvenanceGraphProps) {
       : "10.0";
 
   return (
-    <div className="w-full max-w-6xl mx-auto my-8 flex flex-col gap-6 select-none font-sans">
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: "easeOut" }}
+      className="w-full max-w-6xl mx-auto my-8 flex flex-col gap-6 select-none font-sans"
+    >
       {/* Top Header & High-Impact Metric Banner */}
       <div className="bg-surface p-8 rounded-3xl flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
         <div>
@@ -213,9 +219,18 @@ export default function ProvenanceGraph({ assets }: ProvenanceGraphProps) {
             </div>
           </div>
 
-          {/* VIEW 1: Lineage Network Tree */}
-          {viewMode === "network" && (
-            <div className="w-full flex-1 flex flex-col items-center justify-start relative min-h-[380px] max-h-[500px] overflow-y-auto overflow-x-hidden pr-2">
+          {/* VIEW SWITCHER WITH FRAMER MOTION ANIMATION */}
+          <AnimatePresence mode="wait">
+            {/* VIEW 1: Lineage Network Tree */}
+            {viewMode === "network" && (
+              <motion.div
+                key="network-view"
+                initial={{ opacity: 0, scale: 0.99 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.99 }}
+                transition={{ duration: 0.2 }}
+                className="w-full flex-1 flex flex-col items-center justify-start relative min-h-[380px] max-h-[500px] overflow-y-auto overflow-x-hidden pr-2"
+              >
               {assets.length === 0 ? (
                 <div className="text-center py-16 m-auto">
                   <p className="text-xs font-light text-text-muted">
@@ -377,12 +392,19 @@ export default function ProvenanceGraph({ assets }: ProvenanceGraphProps) {
                   })}
                 </svg>
               )}
-            </div>
+            </motion.div>
           )}
 
-          {/* VIEW 2: Invariant Polygon Radar Chart with Sweeping Scan Beam */}
+          {/* VIEW 2: Invariant Polygon Radar Chart */}
           {viewMode === "radar" && (
-            <div className="w-full flex-1 flex flex-col items-center justify-center relative min-h-[380px]">
+            <motion.div
+              key="radar-view"
+              initial={{ opacity: 0, scale: 0.99 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.99 }}
+              transition={{ duration: 0.2 }}
+              className="w-full flex-1 flex flex-col items-center justify-center relative min-h-[380px]"
+            >
               <div className="absolute top-0 left-0 text-left">
                 <span className="text-3xl font-light text-text-primary tracking-tight">
                   94.8%
@@ -465,12 +487,19 @@ export default function ProvenanceGraph({ assets }: ProvenanceGraphProps) {
                   Agent Permissions (96%)
                 </text>
               </svg>
-            </div>
+            </motion.div>
           )}
 
-          {/* VIEW 3: Proportional Royalty Packing Circles with Pulse */}
+          {/* VIEW 3: Proportional Royalty Packing Circles */}
           {viewMode === "composition" && (
-            <div className="w-full flex-1 flex flex-col lg:flex-row items-center justify-around gap-8 min-h-[380px]">
+            <motion.div
+              key="composition-view"
+              initial={{ opacity: 0, scale: 0.99 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.99 }}
+              transition={{ duration: 0.2 }}
+              className="w-full flex-1 flex flex-col lg:flex-row items-center justify-around gap-8 min-h-[380px]"
+            >
               <div className="relative w-64 h-64 flex items-center justify-center">
                 {/* Large Circle (Primary Creator Split) */}
                 <div className="absolute w-44 h-44 rounded-full bg-brand/20 flex flex-col items-center justify-center top-2 left-2 transition-transform duration-300 hover:scale-105">
@@ -507,8 +536,9 @@ export default function ProvenanceGraph({ assets }: ProvenanceGraphProps) {
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           )}
+        </AnimatePresence>
 
           {/* Bottom Protocol Info Tag */}
           <div className="mt-6 pt-4 text-[10px] font-mono text-text-muted flex items-center justify-between shrink-0">
@@ -519,89 +549,105 @@ export default function ProvenanceGraph({ assets }: ProvenanceGraphProps) {
 
         {/* Right Node Metadata Card (4 Cols) */}
         <div className="lg:col-span-4 bg-surface p-6 sm:p-8 rounded-3xl flex flex-col justify-between text-left">
-          {selectedAsset ? (
-            <div className="flex flex-col gap-5">
-              <div>
-                <span className="text-[10px] uppercase tracking-widest text-brand font-normal block mb-1">
-                  Anchored Registry Card
-                </span>
-                <h3 className="text-xl font-light text-text-primary leading-tight">
-                  {selectedAsset.title}
-                </h3>
-                <span className="text-[10px] font-mono text-text-muted block mt-1">
-                  ID: #{selectedAsset.id}
-                </span>
-              </div>
-
-              {/* Media Preview if available */}
-              {selectedAsset.mediaUrl && (
-                <div className="w-full h-36 rounded-2xl bg-background overflow-hidden flex items-center justify-center">
-                  <img
-                    src={selectedAsset.mediaUrl}
-                    alt={selectedAsset.title}
-                    className="max-h-full max-w-full object-contain"
-                  />
-                </div>
-              )}
-
-              {/* Details List */}
-              <div className="flex flex-col gap-3 text-xs font-light">
+          <AnimatePresence mode="wait">
+            {selectedAsset ? (
+              <motion.div
+                key={selectedAsset.id}
+                initial={{ opacity: 0, x: 8 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -8 }}
+                transition={{ duration: 0.2 }}
+                className="flex flex-col gap-5"
+              >
                 <div>
-                  <span className="text-text-muted block text-[9px] uppercase tracking-wider">
-                    Generation Model
+                  <span className="text-[10px] uppercase tracking-widest text-brand font-normal block mb-1">
+                    Anchored Registry Card
                   </span>
-                  <span className="text-text-primary block mt-0.5">
-                    {selectedAsset.aiModel || "Autonomous System"}
-                  </span>
-                </div>
-
-                <div>
-                  <span className="text-text-muted block text-[9px] uppercase tracking-wider">
-                    Cryptographic SHA 256
-                  </span>
-                  <span className="font-mono text-text-primary block truncate mt-0.5">
-                    {selectedAsset.contentHash}
+                  <h3 className="text-xl font-light text-text-primary leading-tight">
+                    {selectedAsset.title}
+                  </h3>
+                  <span className="text-[10px] font-mono text-text-muted block mt-1">
+                    ID: #{selectedAsset.id}
                   </span>
                 </div>
 
-                <div>
-                  <span className="text-text-muted block text-[9px] uppercase tracking-wider">
-                    Visual Perceptual Hash
-                  </span>
-                  <span className="font-mono text-brand block mt-0.5">
-                    {selectedAsset.phash || "0000000000000000"}
-                  </span>
-                </div>
+                {/* Media Preview if available */}
+                {selectedAsset.mediaUrl && (
+                  <div className="w-full h-36 rounded-2xl bg-background overflow-hidden flex items-center justify-center">
+                    <img
+                      src={selectedAsset.mediaUrl}
+                      alt={selectedAsset.title}
+                      className="max-h-full max-w-full object-contain"
+                    />
+                  </div>
+                )}
 
-                <div>
-                  <span className="text-text-muted block text-[9px] uppercase tracking-wider">
-                    Creator Wallet
-                  </span>
-                  <span className="font-mono text-text-primary block truncate mt-0.5">
-                    {selectedAsset.creatorAddress}
-                  </span>
-                </div>
+                {/* Details List */}
+                <div className="flex flex-col gap-3 text-xs font-light">
+                  <div>
+                    <span className="text-text-muted block text-[9px] uppercase tracking-wider">
+                      Generation Model
+                    </span>
+                    <span className="text-text-primary block mt-0.5">
+                      {selectedAsset.aiModel || "Autonomous System"}
+                    </span>
+                  </div>
 
-                <div className="pt-2 flex justify-between items-center">
-                  <span className="text-text-muted">Royalty Split Term</span>
-                  <span className="text-brand font-mono">{selectedAsset.royaltySplit}% split</span>
-                </div>
+                  <div>
+                    <span className="text-text-muted block text-[9px] uppercase tracking-wider">
+                      Cryptographic SHA 256
+                    </span>
+                    <span className="font-mono text-text-primary block truncate mt-0.5">
+                      {selectedAsset.contentHash}
+                    </span>
+                  </div>
 
-                <div className="flex justify-between items-center">
-                  <span className="text-text-muted">Lineage Ancestry</span>
-                  <span className="text-success flex items-center gap-1 font-mono">
-                    <IconCheck size={12} />
-                    {selectedAsset.parentId ? "Derivative Node" : "Genesis Origin"}
-                  </span>
+                  <div>
+                    <span className="text-text-muted block text-[9px] uppercase tracking-wider">
+                      Visual Perceptual Hash
+                    </span>
+                    <span className="font-mono text-brand block mt-0.5">
+                      {selectedAsset.phash || "0000000000000000"}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="text-text-muted block text-[9px] uppercase tracking-wider">
+                      Creator Wallet
+                    </span>
+                    <span className="font-mono text-text-primary block truncate mt-0.5">
+                      {selectedAsset.creatorAddress}
+                    </span>
+                  </div>
+
+                  <div className="pt-2 flex justify-between items-center">
+                    <span className="text-text-muted">Royalty Split Term</span>
+                    <span className="text-brand font-mono">{selectedAsset.royaltySplit}% split</span>
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                    <span className="text-text-muted">Lineage Ancestry</span>
+                    <span className="text-success flex items-center gap-1 font-mono">
+                      <IconCheck size={12} />
+                      {selectedAsset.parentId ? "Derivative Node" : "Genesis Origin"}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-16 text-center text-text-muted">
-              <IconFingerprint size={32} className="text-brand mb-3" />
-              <p className="text-xs font-light">Select any node in the topology graph to inspect on-chain provenance records.</p>
-            </div>
-          )}
+              </motion.div>
+            ) : (
+              <motion.div
+                key="empty-state"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="flex flex-col items-center justify-center py-16 text-center text-text-muted"
+              >
+                <IconFingerprint size={32} className="text-brand mb-3" />
+                <p className="text-xs font-light">Select any node in the topology graph to inspect on-chain provenance records.</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Bottom Explorer Action Button */}
           {selectedAsset && (
@@ -617,6 +663,6 @@ export default function ProvenanceGraph({ assets }: ProvenanceGraphProps) {
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import Dropdown from "@/components/ui/Dropdown";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
@@ -296,7 +297,12 @@ export default function RegisterForm({
   }));
 
   return (
-    <div className="w-full max-w-2xl bg-surface p-8 rounded-3xl mx-auto my-12">
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: "easeOut" }}
+      className="w-full max-w-2xl bg-surface p-8 rounded-3xl mx-auto my-12"
+    >
       <div className="mb-8 text-left">
         <span className="text-xs uppercase tracking-widest text-brand font-normal block mb-2">
           {isDeriving ? "Attribution registry" : "Provenance registration"}
@@ -369,43 +375,51 @@ export default function RegisterForm({
         </div>
 
         {/* Provenance Intelligence Warning Card */}
-        {detectedParent && (
-          <div className="bg-surface-active/80 p-5 rounded-2xl text-left flex flex-col gap-4">
-            <div className="flex flex-col gap-1">
-              <span className="text-[10px] uppercase tracking-wider text-brand font-medium block">
-                Potential derivative detected
-              </span>
-              <span className="text-xs font-light text-text-muted mt-1 leading-relaxed">
-                We analyzed this asset's visual fingerprint against the registry. It is visually similar to an existing asset.
-              </span>
-              <div className="flex justify-between items-center bg-surface p-3.5 rounded-xl mt-2 text-xs font-light">
-                <span>Possible parent: <strong className="font-normal text-text-primary">{detectedParent.title}</strong></span>
-                <span className="font-mono text-brand">{detectedParent.similarity}% match</span>
+        <AnimatePresence>
+          {detectedParent && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.25 }}
+              className="bg-surface-active/80 p-5 rounded-2xl text-left flex flex-col gap-4 overflow-hidden"
+            >
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] uppercase tracking-wider text-brand font-medium block">
+                  Potential derivative detected
+                </span>
+                <span className="text-xs font-light text-text-muted mt-1 leading-relaxed">
+                  We analyzed this asset's visual fingerprint against the registry. It is visually similar to an existing asset.
+                </span>
+                <div className="flex justify-between items-center bg-surface p-3.5 rounded-xl mt-2 text-xs font-light">
+                  <span>Possible parent: <strong className="font-normal text-text-primary">{detectedParent.title}</strong></span>
+                  <span className="font-mono text-brand">{detectedParent.similarity}% match</span>
+                </div>
               </div>
-            </div>
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setParentId(detectedParent.id);
-                  setDetectedParent(null);
-                }}
-                className="flex-1 py-3 bg-brand text-background text-xs font-normal rounded-xl cursor-pointer hover:bg-brand/90 transition-colors"
-              >
-                Declare as derivative
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setDetectedParent(null);
-                }}
-                className="flex-1 py-3 bg-surface-active text-text-primary text-xs font-normal rounded-xl cursor-pointer hover:bg-surface-active/80 transition-colors"
-              >
-                Register as independent work
-              </button>
-            </div>
-          </div>
-        )}
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setParentId(detectedParent.id);
+                    setDetectedParent(null);
+                  }}
+                  className="flex-1 py-3 bg-brand text-background text-xs font-normal rounded-xl cursor-pointer hover:bg-brand/90 transition-colors"
+                >
+                  Declare as derivative
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDetectedParent(null);
+                  }}
+                  className="flex-1 py-3 bg-surface-active text-text-primary text-xs font-normal rounded-xl cursor-pointer hover:bg-surface-active/80 transition-colors"
+                >
+                  Register as independent work
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Text Fields */}
         <div className="flex flex-col gap-1 text-left">
@@ -479,8 +493,9 @@ export default function RegisterForm({
         )}
 
         {/* Submit */}
-        <button
+        <motion.button
           type="submit"
+          whileTap={{ scale: !fileHash || !title || isSubmitting || isUploading ? 1 : 0.98 }}
           disabled={!fileHash || !title || isSubmitting || isUploading}
           className={`w-full py-4 text-sm font-normal text-background rounded-xl transition-colors duration-200 cursor-pointer mt-4 ${
             fileHash && title && !isSubmitting && !isUploading
@@ -489,8 +504,8 @@ export default function RegisterForm({
           }`}
         >
           {isUploading ? "Uploading Media..." : (isSubmitting ? "Confirm in Wallet..." : "Anchor Record on Chain")}
-        </button>
+        </motion.button>
       </form>
-    </div>
+    </motion.div>
   );
 }

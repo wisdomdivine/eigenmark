@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Asset {
   id: string;
@@ -216,7 +217,12 @@ export default function VerifyPanel({ assets }: VerifyPanelProps) {
   };
 
   return (
-    <div className="w-full max-w-2xl bg-surface p-8 rounded-3xl mx-auto my-12">
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: "easeOut" }}
+      className="w-full max-w-2xl bg-surface p-8 rounded-3xl mx-auto my-12"
+    >
       <div className="mb-8 text-left">
         <span className="text-xs uppercase tracking-widest text-brand font-normal block mb-2">
           Verify digital authenticity
@@ -275,111 +281,120 @@ export default function VerifyPanel({ assets }: VerifyPanelProps) {
         </div>
 
         {/* Verification Result */}
-        {searched && !isHashing && (
-          <div className="text-left">
-            {verifiedAsset ? (
-              <div className="bg-surface-active/50 p-6 rounded-2xl flex flex-col gap-4">
-                {verifiedAsset.mediaUrl && (
-                  <div className="w-full h-44 overflow-hidden rounded-2xl bg-background flex items-center justify-center">
-                    <img 
-                      src={verifiedAsset.mediaUrl} 
-                      alt={verifiedAsset.title} 
-                      className="max-w-full max-h-full object-contain"
-                    />
-                  </div>
-                )}
-                <div className="flex justify-between items-start">
-                  <div>
-                    <span className="text-[10px] uppercase tracking-widest text-success font-normal block mb-1">
-                      {matchType === "exact" ? "Cryptographic match verified" : "Perceptual visual match detected"}
+        <AnimatePresence mode="wait">
+          {searched && !isHashing && (
+            <motion.div
+              key="search-result"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.25 }}
+              className="text-left"
+            >
+              {verifiedAsset ? (
+                <div className="bg-surface-active/50 p-6 rounded-2xl flex flex-col gap-4">
+                  {verifiedAsset.mediaUrl && (
+                    <div className="w-full h-44 overflow-hidden rounded-2xl bg-background flex items-center justify-center">
+                      <img 
+                        src={verifiedAsset.mediaUrl} 
+                        alt={verifiedAsset.title} 
+                        className="max-w-full max-h-full object-contain"
+                      />
+                    </div>
+                  )}
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className="text-[10px] uppercase tracking-widest text-success font-normal block mb-1">
+                        {matchType === "exact" ? "Cryptographic match verified" : "Perceptual visual match detected"}
+                      </span>
+                      <h3 className="text-xl font-light text-text-primary">
+                        {verifiedAsset.title}
+                      </h3>
+                    </div>
+                    <span className="text-success text-xs font-light">
+                      Ledger Confirmed
                     </span>
-                    <h3 className="text-xl font-light text-text-primary">
-                      {verifiedAsset.title}
-                    </h3>
                   </div>
-                  <span className="text-success text-xs font-light">
-                    Ledger Confirmed
-                  </span>
-                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-light mt-2">
-                  <div>
-                    <span className="text-text-muted block uppercase tracking-wider text-[9px]">
-                      Asset signature hash
-                    </span>
-                    <span className="font-mono text-text-primary block truncate mt-0.5">
-                      {verifiedAsset.contentHash}
-                    </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-light mt-2">
+                    <div>
+                      <span className="text-text-muted block uppercase tracking-wider text-[9px]">
+                        Asset signature hash
+                      </span>
+                      <span className="font-mono text-text-primary block truncate mt-0.5">
+                        {verifiedAsset.contentHash}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-text-muted block uppercase tracking-wider text-[9px]">
+                        Creator address
+                      </span>
+                      <span className="font-mono text-text-primary block truncate mt-0.5">
+                        {verifiedAsset.creatorAddress}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-text-muted block uppercase tracking-wider text-[9px]">
+                        Registered timestamp
+                      </span>
+                      <span className="text-text-primary block mt-0.5">
+                        {verifiedAsset.timestamp}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-text-muted block uppercase tracking-wider text-[9px]">
+                        AI generation model
+                      </span>
+                      <span className="text-text-primary block mt-0.5">
+                        {verifiedAsset.aiModel}
+                      </span>
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-text-muted block uppercase tracking-wider text-[9px]">
-                      Creator address
-                    </span>
-                    <span className="font-mono text-text-primary block truncate mt-0.5">
-                      {verifiedAsset.creatorAddress}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-text-muted block uppercase tracking-wider text-[9px]">
-                      Registered timestamp
-                    </span>
-                    <span className="text-text-primary block mt-0.5">
-                      {verifiedAsset.timestamp}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-text-muted block uppercase tracking-wider text-[9px]">
-                      AI generation model
-                    </span>
-                    <span className="text-text-primary block mt-0.5">
-                      {verifiedAsset.aiModel}
-                    </span>
-                  </div>
-                </div>
 
-                <div className="pt-4 flex flex-col gap-2 mt-2">
-                  <div className="flex justify-between text-xs font-light">
-                    <span className="text-text-muted">Licensing terms</span>
-                    <span className="text-text-primary">Commercial use allowed</span>
-                  </div>
-                  <div className="flex justify-between text-xs font-light">
-                    <span className="text-text-muted">Royalty terms</span>
-                    <span className="text-text-primary">
-                      {verifiedAsset.royaltySplit}% split to primary creator
-                    </span>
-                  </div>
-                  {verifiedAsset.parentId && (
+                  <div className="pt-4 flex flex-col gap-2 mt-2">
                     <div className="flex justify-between text-xs font-light">
-                      <span className="text-text-muted">Lineage</span>
-                      <span className="text-brand">Derivative work of parent asset</span>
+                      <span className="text-text-muted">Licensing terms</span>
+                      <span className="text-text-primary">Commercial use allowed</span>
+                    </div>
+                    <div className="flex justify-between text-xs font-light">
+                      <span className="text-text-muted">Royalty terms</span>
+                      <span className="text-text-primary">
+                        {verifiedAsset.royaltySplit}% split to primary creator
+                      </span>
+                    </div>
+                    {verifiedAsset.parentId && (
+                      <div className="flex justify-between text-xs font-light">
+                        <span className="text-text-muted">Lineage</span>
+                        <span className="text-brand">Derivative work of parent asset</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="text-[10px] font-mono text-text-muted truncate mt-1">
+                    Anchor transaction: {verifiedAsset.transactionHash}
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-surface-active/30 p-6 rounded-2xl text-center">
+                  <span className="text-xs uppercase tracking-widest text-text-muted font-normal block mb-1">
+                    Lookup complete
+                  </span>
+                  <h3 className="text-lg font-light text-text-primary mb-2">
+                    No provenance record found
+                  </h3>
+                  <p className="text-xs font-light text-text-muted max-w-md mx-auto leading-relaxed">
+                    This file signature does not match any registered asset in the database.
+                  </p>
+                  {computedHashes && (
+                    <div className="text-[10px] font-mono text-text-muted mt-3 truncate">
+                      SHA 256: {computedHashes.sha256} &middot; Visual Hash: {computedHashes.phash}
                     </div>
                   )}
                 </div>
-
-                <div className="text-[10px] font-mono text-text-muted truncate mt-1">
-                  Anchor transaction: {verifiedAsset.transactionHash}
-                </div>
-              </div>
-            ) : (
-              <div className="bg-surface-active/30 p-6 rounded-2xl text-center">
-                <span className="text-xs uppercase tracking-widest text-text-muted font-normal block mb-1">
-                  Lookup complete
-                </span>
-                <h3 className="text-lg font-light text-text-primary mb-2">
-                  No provenance record found
-                </h3>
-                <p className="text-xs font-light text-text-muted max-w-md mx-auto leading-relaxed">
-                  This file signature does not match any registered asset in the database.
-                </p>
-                {computedHashes && (
-                  <div className="text-[10px] font-mono text-text-muted mt-3 truncate">
-                    SHA 256: {computedHashes.sha256} &middot; Visual Hash: {computedHashes.phash}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Registered Ledger Assets Quick Inspector */}
         {assets.length > 0 && (
@@ -389,18 +404,20 @@ export default function VerifyPanel({ assets }: VerifyPanelProps) {
             </span>
             <div className="flex flex-wrap gap-2">
               {assets.map((asset) => (
-                <button
+                <motion.button
                   key={asset.id}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => handleSelectAsset(asset)}
                   className="px-3.5 py-2 bg-surface-active hover:bg-brand hover:text-background text-xs font-light rounded-xl text-text-primary transition-colors duration-150 cursor-pointer"
                 >
                   {asset.title}
-                </button>
+                </motion.button>
               ))}
             </div>
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }
