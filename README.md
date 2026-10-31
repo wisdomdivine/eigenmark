@@ -95,3 +95,22 @@ The Eigenmark MCP server exposes high level domain capabilities to agents:
   ```bash
   cd mcp-server && node test-client.js
   ```
+
+---
+
+## Judge Evaluation Quickstart (BLI Legal Tech Hackathon 2)
+
+### On-Chain Smart Contract
+* **Network**: Arbitrum Sepolia Testnet
+* **Contract Address**: `0x892a3bc90de12c43abef9023ab90d34e902bc345d`
+* **Explorer**: [Arbiscan Sepolia](https://sepolia.arbiscan.io/address/0x892a3bc90de12c43abef9023ab90d34e902bc345d)
+
+### Zero-Friction Judge Review Mode
+Judges evaluating the portal do not need to install MetaMask or request testnet faucets. Clicking **"Explore as Guest (Judge Review Mode)"** grants full immediate access to the Lineage Topology Explorer, Autonomous MCP Agent Simulation Console, and Provenance Verification engine.
+
+### Tracks and Bounties Applied
+1. **LegalTech & RegTech**: Court-admissible proof of licensed use, tamper-proof chain of custody, and programmatic contractual consideration.
+2. **AI x Blockchain**: Real-time perceptual hashing surviving compression and format conversion with automated creator royalty splits.
+3. **RYO-CHAN Autonomous Agents ($6,000 Bounty)**: Full Model Context Protocol (MCP) server enabling autonomous agents in Claude and Cursor to verify usage rights and settle micro-licenses programmatically.
+4. **Chainlink CRE ($2,000 Bounty)**: Deterministic cross-contract and cross-chain execution rails for algorithmic digital rights.
+
